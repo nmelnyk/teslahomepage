@@ -19,6 +19,9 @@
       background-color: var(--bg-light);
       color: var(--text-light);
       transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     body.dark {
@@ -76,7 +79,7 @@
 
     .footer-buttons {
       position: fixed;
-      bottom: 20px;
+      bottom: 60px;
       right: 20px;
       z-index: 100;
       display: flex;
@@ -107,9 +110,24 @@
     }
 
     footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: transparent;
       text-align: center;
-      margin: 3rem 0 1rem;
-      font-size: 0.9rem;
+      font-size: 0.75rem;
+      color: #888;
+      padding: 0.5rem 1rem;
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: #666;
+    }
+
+    details p {
+      margin: 0.5rem 0 0;
     }
   </style>
 </head>
@@ -128,8 +146,6 @@
     </a>
   </div>
 
-  <footer>Minimalist interface inspired by Tesla.com • Optimized for touch and in-car display</footer>
-
   <div class="footer-buttons">
     <button class="button" onclick="toggleTheme()">
       <img src="https://cdn2.iconfinder.com/data/icons/essential-user-interface-4/24/dark_mode_moon_night-64.png" alt="Toggle Dark Mode" />
@@ -142,6 +158,13 @@
   <div id="loader">
     <div class="spinner"></div>
   </div>
+
+  <footer>
+    <details>
+      <summary>Legal Disclaimer</summary>
+      <p>Links provided are for convenience only. This site is not responsible for the content, availability, or accuracy of external websites.</p>
+    </details>
+  </footer>
 
   <script>
     const savedTheme = localStorage.getItem("tesla-theme");
