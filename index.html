@@ -20,14 +20,6 @@
     body {
       margin: 0;
       font-family: 'Helvetica Neue', 'Roboto', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
-      text-align: center;
-      overflow-x: hidden;
       background-color: var(--bg-light);
       color: var(--text-light);
       transition: background-color 0.3s ease, color 0.3s ease;
@@ -40,42 +32,25 @@
 
     .logo {
       width: 64px;
-      height: auto;
-      opacity: 0;
-      animation: fadeLogo 2s ease-out 0.5s forwards;
-    }
-
-    @keyframes fadeLogo {
-      from { opacity: 0; transform: translateY(-10px); }
-      to   { opacity: 1; transform: translateY(0); }
+      margin: 2rem auto 1rem;
+      display: block;
     }
 
     header {
       font-size: 3rem;
       font-weight: 500;
-      margin: 1rem 0 2rem;
-      opacity: 0;
-      transform: scale(0.8);
-      animation: fadeZoom 1.8s ease-out 1.2s forwards;
-    }
-
-    @keyframes fadeZoom {
-      0% { opacity: 0; transform: scale(0.8); }
-      50% { opacity: 0.8; transform: scale(1.05); }
-      100% { opacity: 1; transform: scale(1); }
+      text-align: center;
+      margin-bottom: 2rem;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 2rem;
-      width: 100%;
       max-width: 800px;
-      opacity: 0;
-      animation: fadeInGrid 1.2s ease-out 2.5s forwards;
+      margin: 0 auto;
+      padding: 0 2rem;
     }
-
-    @keyframes fadeInGrid { to { opacity: 1; } }
 
     .button {
       background-color: var(--card-light);
@@ -84,13 +59,13 @@
       padding: 1.2rem;
       font-size: 1rem;
       color: inherit;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-      touch-action: manipulation;
+      text-align: center;
+      text-decoration: none;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      text-decoration: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     body.dark .button {
@@ -104,95 +79,160 @@
       margin-bottom: 0.5rem;
     }
 
-    .button:active {
-      border-color: var(--accent-red);
-      box-shadow: 0 0 10px var(--accent-red);
-    }
-
-    @media (hover: hover) {
-      .button:hover {
-        border-color: var(--accent-red);
-        box-shadow: 0 0 10px var(--accent-red);
-      }
-    }
-
-    .toggle-btn {
+    .footer-buttons {
       position: fixed;
       bottom: 20px;
       right: 20px;
       z-index: 100;
-      background-color: var(--card-light);
-      border: 2px solid var(--border-light);
-      border-radius: 12px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      right: 0;
+      background: var(--card-light);
+      border-top: 2px solid var(--border-light);
+      padding: 2rem;
+      transition: bottom 0.4s ease;
+      z-index: 200;
+    }
+
+    body.dark .modal {
+      background: var(--card-dark);
+      border-top: 2px solid var(--border-dark);
+    }
+
+    .modal.show {
+      bottom: 0;
+    }
+
+    .modal input {
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.8rem;
+      font-size: 1rem;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+    }
+
+    .modal button {
+      margin: 0.5rem;
       padding: 0.8rem 1.2rem;
       font-size: 1rem;
-      color: inherit;
+      border-radius: 8px;
+      border: none;
       cursor: pointer;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     }
 
-    body.dark .toggle-btn {
-      background-color: var(--card-dark);
-      border: 2px solid var(--border-dark);
+    .modal .save {
+      background-color: var(--accent-red);
+      color: white;
     }
 
-    .toggle-btn:active {
-      border-color: var(--accent-red);
-      box-shadow: 0 0 10px var(--accent-red);
-    }
-
-    @media (hover: hover) {
-      .toggle-btn:hover {
-        border-color: var(--accent-red);
-        box-shadow: 0 0 10px var(--accent-red);
-      }
+    .modal .cancel {
+      background-color: #ccc;
     }
 
     footer {
-      margin-top: 3rem;
+      text-align: center;
+      margin: 3rem 0 1rem;
       font-size: 0.9rem;
-      opacity: 0;
-      animation: fadeInFooter 1s ease-out 4s forwards;
-      color: inherit;
     }
-
-    @keyframes fadeInFooter { to { opacity: 1; } }
   </style>
 </head>
 <body>
   <img src="https://logo.clearbit.com/tesla.com" alt="Tesla Logo" class="logo" />
   <header>Tesla Theater</header>
-  <div class="grid">
-    <a href="https://youtube.com/redirect?q=https://www.disneyplus.com" class="button">
+
+  <div class="grid" id="appGrid">
+    <a href="https://www.disneyplus.com" class="button">
       <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg" alt="Disney+ Icon" />
       Disney+
     </a>
-    <a href="https://youtube.com/redirect?q=https://app.plex.tv" class="button">
+    <a href="https://app.plex.tv" class="button">
       <img src="https://www.svgrepo.com/show/303528/plex-logo.svg" alt="Plex Icon" />
       Plex
     </a>
-    <a href="https://youtube.com/redirect?q=https://www.cineby.app" class="button">
+    <a href="https://www.cineby.app" class="button">
       <img src="https://cineby.app/favicon.ico" alt="Cineby Icon" />
       cineby.app
     </a>
-    <a href="https://youtube.com/redirect?q=https://tvpass.org" class="button">
+    <a href="https://tvpass.org" class="button">
       <img src="https://static.vecteezy.com/system/resources/previews/007/688/855/non_2x/tv-logo-free-vector.jpg" alt="TVPass Logo" />
       TVPass
     </a>
+    <button class="button" onclick="showModal()">
+      <img src="https://cdn-icons-png.flaticon.com/512/16/16057.png" alt="Add App" />
+      Add App
+    </button>
   </div>
+
   <footer>Minimalist interface inspired by Tesla.com • Optimized for touch and in-car display</footer>
 
-  <button class="toggle-btn" onclick="toggleTheme()">Toggle Dark Mode</button>
+  <div class="footer-buttons">
+    <button class="button" onclick="toggleTheme()">
+      <img src="https://cdn2.iconfinder.com/data/icons/essential-user-interface-4/24/dark_mode_moon_night-64.png" alt="Toggle Dark Mode" />
+    </button>
+    <a href="https://tinyurl.run/nickstesla" class="button">
+      <img src="https://static.vecteezy.com/system/resources/previews/019/858/696/non_2x/maximize-flat-color-outline-icon-free-png.png" alt="Toggle Fullscreen" />
+    </a>
+  </div>
+
+  <div class="modal" id="modal">
+    <input type="text" id="appName" placeholder="App Name" />
+    <input type="text" id="iconUrl" placeholder="Icon URL" />
+    <input type="text" id="destUrl" placeholder="Destination URL" />
+    <button class="save" onclick="saveApp()">Save</button>
+    <button class="cancel" onclick="hideModal()">Cancel</button>
+  </div>
 
   <script>
-    const saved = localStorage.getItem("tesla-theme");
-    if (saved === "dark") document.body.classList.add("dark");
+    const savedTheme = localStorage.getItem("tesla-theme");
+    if (savedTheme === "dark") document.body.classList.add("dark");
 
     function toggleTheme() {
       document.body.classList.toggle("dark");
-      const newTheme = document.body.classList.contains("dark") ? "dark" : "light";
-      localStorage.setItem("tesla-theme", newTheme);
+      localStorage.setItem("tesla-theme", document.body.classList.contains("dark") ? "dark" : "light");
     }
+
+    function showModal() {
+      document.getElementById("modal").classList.add("show");
+    }
+
+    function hideModal() {
+      document.getElementById("modal").classList.remove("show");
+    }
+
+    function saveApp() {
+      const name = document.getElementById("appName").value;
+      const icon = document.getElementById("iconUrl").value;
+      const url = document.getElementById("destUrl").value;
+      if (!name || !icon || !url) return;
+
+      const app = { name, icon, url };
+      const apps = JSON.parse(localStorage.getItem("customApps") || "[]");
+      apps.push(app);
+      localStorage.setItem("customApps", JSON.stringify(apps));
+      addAppToGrid(app);
+      hideModal();
+    }
+
+    function addAppToGrid(app) {
+      const grid = document.getElementById("appGrid");
+      const btn = document.createElement("a");
+      btn.className = "button";
+      btn.href = app.url;
+      btn.innerHTML = `<img src="${app.icon}" alt="${app.name} Icon" />${app.name}`;
+      grid.insertBefore(btn, grid.lastElementChild);
+    }
+
+    window.onload = () => {
+      const apps = JSON.parse(localStorage.getItem("customApps") || "[]");
+      apps.forEach(addAppToGrid);
+    };
   </script>
 </body>
 </html>
