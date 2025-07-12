@@ -81,32 +81,6 @@
       overflow: hidden;
     }
 
-    .button::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      transform: scale(0);
-      background: rgba(255, 255, 255, 0.3);
-      animation: ripple 0.6s linear;
-    }
-
-    .button:active::after {
-      transform: scale(4);
-      opacity: 0;
-    }
-
-    @keyframes ripple {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    body.dark .button {
-      background-color: rgba(255, 255, 255, 0.05);
-      border-color: #444;
-    }
-
     .button img {
       width: 48px;
       height: 48px;
@@ -199,6 +173,10 @@
     <a href="https://tvpass.org" class="button" onclick="launchApp(event, 'https://tvpass.org')">
       <img src="https://cdn1.iconfinder.com/data/icons/streaming-services-2/256/TV_Schedule-512.png" alt="TV Icon" />
       Live TV
+    </a>
+    <a href="https://retrogames.cc" class="button" onclick="launchApp(event, 'https://retrogames.cc')">
+      <img src="https://cdn-icons-png.flaticon.com/512/1036/1036573.png" alt="Arcade Icon" />
+      Arcade
     </a>
   </div>
 
