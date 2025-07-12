@@ -159,6 +159,12 @@
         window.location.href = url;
       }, 1200);
     }
+
+    // 🧼 Hide loader on page load or back navigation
+    window.addEventListener("pageshow", () => {
+      const loader = document.getElementById("loader");
+      if (loader) loader.style.display = "none";
+    });
   </script>
 </body>
 </html>
