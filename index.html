@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tesla Theater</title>
+  <link rel="icon" href="https://www.svgrepo.com/show/331599/tesla.svg" type="image/svg+xml" />
   <style>
     :root {
       --bg-light: #fff;
@@ -160,7 +161,6 @@
       }, 1200);
     }
 
-    // 🧼 Hide loader on page load or back navigation
     window.addEventListener("pageshow", () => {
       const loader = document.getElementById("loader");
       if (loader) loader.style.display = "none";
