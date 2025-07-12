@@ -10,11 +10,6 @@
       --bg-dark: #000;
       --text-light: #222;
       --text-dark: #eee;
-      --accent-red: #e82127;
-      --card-light: #f8f8f8;
-      --card-dark: #111;
-      --border-light: #e0e0e0;
-      --border-dark: #444;
     }
 
     body {
@@ -53,24 +48,23 @@
     }
 
     .button {
-      background-color: var(--card-light);
-      border: 2px solid var(--border-light);
+      background-color: #f8f8f8;
+      border: 2px solid #e0e0e0;
       border-radius: 12px;
       padding: 1.2rem;
       font-size: 1rem;
-      color: inherit;
       text-align: center;
       text-decoration: none;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      color: inherit;
     }
 
     body.dark .button {
-      background-color: var(--card-dark);
-      border: 2px solid var(--border-dark);
+      background-color: #111;
+      border-color: #444;
     }
 
     .button img {
@@ -88,52 +82,27 @@
       gap: 12px;
     }
 
-    .modal {
+    #loader {
+      display: none;
       position: fixed;
-      bottom: -100%;
-      left: 0;
-      right: 0;
-      background: var(--card-light);
-      border-top: 2px solid var(--border-light);
-      padding: 2rem;
-      transition: bottom 0.4s ease;
-      z-index: 200;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
     }
 
-    body.dark .modal {
-      background: var(--card-dark);
-      border-top: 2px solid var(--border-dark);
+    .spinner {
+      width: 80px;
+      height: 80px;
+      border: 8px solid rgba(255, 0, 0, 0.2);
+      border-top: 8px solid #e82127;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
 
-    .modal.show {
-      bottom: 0;
-    }
-
-    .modal input {
-      width: 100%;
-      margin-bottom: 1rem;
-      padding: 0.8rem;
-      font-size: 1rem;
-      border: 1px solid var(--border-light);
-      border-radius: 8px;
-    }
-
-    .modal button {
-      margin: 0.5rem;
-      padding: 0.8rem 1.2rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .modal .save {
-      background-color: var(--accent-red);
-      color: white;
-    }
-
-    .modal .cancel {
-      background-color: #ccc;
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     footer {
@@ -147,27 +116,15 @@
   <img src="https://logo.clearbit.com/tesla.com" alt="Tesla Logo" class="logo" />
   <header>Tesla Theater</header>
 
-  <div class="grid" id="appGrid">
-    <a href="https://www.disneyplus.com" class="button">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg" alt="Disney+ Icon" />
-      Disney+
+  <div class="grid">
+    <a href="https://cineby.app" class="button" onclick="launchApp(event, 'https://cineby.app')">
+      <img src="https://cdn-icons-png.flaticon.com/512/3418/3418886.png" alt="Movies Icon" />
+      Movies
     </a>
-    <a href="https://app.plex.tv" class="button">
-      <img src="https://www.svgrepo.com/show/303528/plex-logo.svg" alt="Plex Icon" />
-      Plex
+    <a href="https://tvpass.org" class="button" onclick="launchApp(event, 'https://tvpass.org')">
+      <img src="https://cdn1.iconfinder.com/data/icons/streaming-services-2/256/TV_Schedule-512.png" alt="TV Icon" />
+      TV
     </a>
-    <a href="https://www.cineby.app" class="button">
-      <img src="https://cineby.app/favicon.ico" alt="Cineby Icon" />
-      cineby.app
-    </a>
-    <a href="https://tvpass.org" class="button">
-      <img src="https://static.vecteezy.com/system/resources/previews/007/688/855/non_2x/tv-logo-free-vector.jpg" alt="TVPass Logo" />
-      TVPass
-    </a>
-    <button class="button" onclick="showModal()">
-      <img src="https://cdn-icons-png.flaticon.com/512/16/16057.png" alt="Add App" />
-      Add App
-    </button>
   </div>
 
   <footer>Minimalist interface inspired by Tesla.com • Optimized for touch and in-car display</footer>
@@ -181,12 +138,8 @@
     </a>
   </div>
 
-  <div class="modal" id="modal">
-    <input type="text" id="appName" placeholder="App Name" />
-    <input type="text" id="iconUrl" placeholder="Icon URL" />
-    <input type="text" id="destUrl" placeholder="Destination URL" />
-    <button class="save" onclick="saveApp()">Save</button>
-    <button class="cancel" onclick="hideModal()">Cancel</button>
+  <div id="loader">
+    <div class="spinner"></div>
   </div>
 
   <script>
@@ -194,45 +147,18 @@
     if (savedTheme === "dark") document.body.classList.add("dark");
 
     function toggleTheme() {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("tesla-theme", document.body.classList.contains("dark") ? "dark" : "light");
+      const isDark = document.body.classList.toggle("dark");
+      localStorage.setItem("tesla-theme", isDark ? "dark" : "light");
     }
 
-    function showModal() {
-      document.getElementById("modal").classList.add("show");
+    function launchApp(event, url) {
+      event.preventDefault();
+      const loader = document.getElementById("loader");
+      loader.style.display = "flex";
+      setTimeout(() => {
+        window.location.href = url;
+      }, 1200);
     }
-
-    function hideModal() {
-      document.getElementById("modal").classList.remove("show");
-    }
-
-    function saveApp() {
-      const name = document.getElementById("appName").value;
-      const icon = document.getElementById("iconUrl").value;
-      const url = document.getElementById("destUrl").value;
-      if (!name || !icon || !url) return;
-
-      const app = { name, icon, url };
-      const apps = JSON.parse(localStorage.getItem("customApps") || "[]");
-      apps.push(app);
-      localStorage.setItem("customApps", JSON.stringify(apps));
-      addAppToGrid(app);
-      hideModal();
-    }
-
-    function addAppToGrid(app) {
-      const grid = document.getElementById("appGrid");
-      const btn = document.createElement("a");
-      btn.className = "button";
-      btn.href = app.url;
-      btn.innerHTML = `<img src="${app.icon}" alt="${app.name} Icon" />${app.name}`;
-      grid.insertBefore(btn, grid.lastElementChild);
-    }
-
-    window.onload = () => {
-      const apps = JSON.parse(localStorage.getItem("customApps") || "[]");
-      apps.forEach(addAppToGrid);
-    };
   </script>
 </body>
 </html>
