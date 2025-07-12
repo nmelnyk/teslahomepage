@@ -1,62 +1,198 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tesla Touchscreen Links</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tesla Theater</title>
   <style>
+    :root {
+      --bg-light: #fff;
+      --bg-dark: #000;
+      --text-light: #222;
+      --text-dark: #eee;
+      --accent-red: #e82127;
+      --card-light: #f8f8f8;
+      --card-dark: #111;
+      --border-light: #e0e0e0;
+      --border-dark: #444;
+    }
+
     body {
-      background-color: black;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      font-family: Arial, sans-serif;
-    }
-    .container {
+      font-family: 'Helvetica Neue', 'Roboto', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
       text-align: center;
+      overflow-x: hidden;
+      background-color: var(--bg-light);
+      color: var(--text-light);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
-    .icon {
-      margin: 20px;
-      display: inline-block;
+
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
     }
-    .icon img {
-      width: 100px;
-      height: 100px;
-      border-radius: 10px;
+
+    .logo {
+      width: 64px;
+      height: auto;
+      opacity: 0;
+      animation: fadeLogo 2s ease-out 0.5s forwards;
     }
-    .icon a {
+
+    @keyframes fadeLogo {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    header {
+      font-size: 3rem;
+      font-weight: 500;
+      margin: 1rem 0 2rem;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeZoom 1.8s ease-out 1.2s forwards;
+    }
+
+    @keyframes fadeZoom {
+      0% { opacity: 0; transform: scale(0.8); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 2rem;
+      width: 100%;
+      max-width: 800px;
+      opacity: 0;
+      animation: fadeInGrid 1.2s ease-out 2.5s forwards;
+    }
+
+    @keyframes fadeInGrid { to { opacity: 1; } }
+
+    .button {
+      background-color: var(--card-light);
+      border: 2px solid var(--border-light);
+      border-radius: 12px;
+      padding: 1.2rem;
+      font-size: 1rem;
+      color: inherit;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+      touch-action: manipulation;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-decoration: none;
-      color: white;
     }
-    .icon a:hover {
-      color: #ff4500;
+
+    body.dark .button {
+      background-color: var(--card-dark);
+      border: 2px solid var(--border-dark);
     }
+
+    .button img {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 0.5rem;
+    }
+
+    .button:active {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 10px var(--accent-red);
+    }
+
+    @media (hover: hover) {
+      .button:hover {
+        border-color: var(--accent-red);
+        box-shadow: 0 0 10px var(--accent-red);
+      }
+    }
+
+    .toggle-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      background-color: var(--card-light);
+      border: 2px solid var(--border-light);
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      font-size: 1rem;
+      color: inherit;
+      cursor: pointer;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    }
+
+    body.dark .toggle-btn {
+      background-color: var(--card-dark);
+      border: 2px solid var(--border-dark);
+    }
+
+    .toggle-btn:active {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 10px var(--accent-red);
+    }
+
+    @media (hover: hover) {
+      .toggle-btn:hover {
+        border-color: var(--accent-red);
+        box-shadow: 0 0 10px var(--accent-red);
+      }
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      opacity: 0;
+      animation: fadeInFooter 1s ease-out 4s forwards;
+      color: inherit;
+    }
+
+    @keyframes fadeInFooter { to { opacity: 1; } }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="icon">
-      <a href="https://www.youtube.com/redirect?q=https://cineby.app" target="_blank">
-        <img src="https://www.cineby.app/logo.png" alt="CineBy">
-        <p>CineBy</p>
-      </a>
-    </div>
-    <div class="icon">
-      <a href="https://www.youtube.com/redirect?q=https://thetvapp.to" target="_blank">
-        <img src="https://play-lh.googleusercontent.com/TnMTftZjXIURmsbYogpkSVKKfZXF4MqmrgF3_PIU9wwKY8kcUj5UfTwTSPRnVoovGHE" alt="TV App">
-        <p>The TV App</p>
-      </a>
-    </div>
-    <div class="icon">
-      <a href="https://www.youtube.com/redirect?q=https://app.plex.tv" target="_blank">
-        <img src="https://m.media-amazon.com/images/I/21hopceMfJL.png" alt="Plex">
-        <p>Plex</p>
-      </a>
-    </div>
+  <img src="https://logo.clearbit.com/tesla.com" alt="Tesla Logo" class="logo" />
+  <header>Tesla Theater</header>
+  <div class="grid">
+    <a href="https://youtube.com/redirect?q=https://www.disneyplus.com" class="button">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg" alt="Disney+ Icon" />
+      Disney+
+    </a>
+    <a href="https://youtube.com/redirect?q=https://app.plex.tv" class="button">
+      <img src="https://www.svgrepo.com/show/303528/plex-logo.svg" alt="Plex Icon" />
+      Plex
+    </a>
+    <a href="https://youtube.com/redirect?q=https://www.cineby.app" class="button">
+      <img src="https://cineby.app/favicon.ico" alt="Cineby Icon" />
+      cineby.app
+    </a>
+    <a href="https://youtube.com/redirect?q=https://tvpass.org" class="button">
+      <img src="https://static.vecteezy.com/system/resources/previews/007/688/855/non_2x/tv-logo-free-vector.jpg" alt="TVPass Logo" />
+      TVPass
+    </a>
   </div>
+  <footer>Minimalist interface inspired by Tesla.com • Optimized for touch and in-car display</footer>
+
+  <button class="toggle-btn" onclick="toggleTheme()">Toggle Dark Mode</button>
+
+  <script>
+    const saved = localStorage.getItem("tesla-theme");
+    if (saved === "dark") document.body.classList.add("dark");
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      const newTheme = document.body.classList.contains("dark") ? "dark" : "light";
+      localStorage.setItem("tesla-theme", newTheme);
+    }
+  </script>
 </body>
 </html>
