@@ -82,11 +82,12 @@
             border-color: #a7f3d0;
         }
 
-       /* Clean Journal Display (No Lines) */
-.journal-lines {
-    background-image: none;
-    line-height: 1.5;
-}
+        /* Clean Journal Display (Lines Removed) */
+        .journal-lines {
+            background-image: none;
+            line-height: 1.5;
+        }
+
         .btn-action {
             transition: all 0.2s ease;
         }
@@ -117,20 +118,41 @@
 
     <!-- TOP HEADER -->
     <header class="wavy-header pt-6 pb-12 px-6 relative shadow-sm">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-wide text-center md:text-left drop-shadow-sm">
-                Daily Classroom Check-In
-            </h1>
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
+            
+            <!-- Title & Date Badge -->
+            <div class="flex flex-col md:flex-row items-center gap-3 text-center md:text-left">
+                <h1 class="text-3xl md:text-5xl font-black text-slate-800 tracking-wide drop-shadow-sm">
+                    Daily Classroom Check-In
+                </h1>
+                
+                <!-- Date Display Badge -->
+                <div id="current-date-display" 
+                     class="bg-white/90 text-slate-700 font-extrabold text-sm md:text-base px-3.5 py-1.5 rounded-full border border-sky-300 shadow-sm flex items-center gap-2">
+                    <i class="fa-regular fa-calendar-days text-sky-600"></i>
+                    <span id="date-text">Loading date...</span>
+                </div>
+            </div>
 
             <!-- Teacher Control Bar -->
-            <div class="flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white">
-                <button id="btn-reset" onclick="resetAttendance()" title="Uncheck all students"
-                    class="btn-action bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
-                    <i class="fa-solid fa-rotate-right"></i>
-                    <span>Reset Attendance</span>
+            <div class="flex items-center flex-wrap justify-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white">
+                <!-- Fullscreen Button -->
+                <button id="btn-fullscreen" onclick="toggleFullScreen()" title="Toggle Fullscreen Mode"
+                    class="btn-action bg-sky-600 hover:bg-sky-700 text-white font-bold px-3.5 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
+                    <i id="fullscreen-icon" class="fa-solid fa-expand"></i>
+                    <span id="fullscreen-text">Full Screen</span>
                 </button>
+
+                <!-- Reset Button -->
+                <button id="btn-reset" onclick="resetAttendance()" title="Uncheck all students"
+                    class="btn-action bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reset</span>
+                </button>
+
+                <!-- Edit Prompt Button -->
                 <button id="btn-edit-prompt" onclick="openPromptModal()" title="Edit Journal Prompt"
-                    class="btn-action bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
+                    class="btn-action bg-purple-600 hover:bg-purple-700 text-white font-bold px-3.5 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square"></i>
                     <span>Edit Prompt</span>
                 </button>
@@ -190,24 +212,24 @@
                     <div onclick="openPromptModal()" title="Click to edit prompt"
                          class="bg-[#e0f2fe] rounded-2xl p-6 flex-1 flex flex-col justify-between border-3 border-sky-300 relative shadow-md group cursor-pointer hover:bg-sky-100/80 transition-colors">
                         
-                        <!-- Lined Writing Canvas Area -->
-                        <div class="journal-lines pt-2 flex-1 space-y-2">
+                        <!-- Clean Display Canvas Area (No Background Lines) -->
+                        <div class="journal-lines pt-2 flex-1 space-y-4">
                             <!-- Prompt Question -->
-                            <p id="prompt-display-text" class="text-slate-800 text-xl md:text-2xl font-bold leading-[43px] tracking-wide">
+                            <p id="prompt-display-text" class="text-slate-800 text-xl md:text-2xl font-bold tracking-wide">
                                 Loading prompt...
                             </p>
                             
                             <!-- Sentence Starter Box -->
                             <div class="pt-2">
                                 <span class="text-xs font-black uppercase tracking-wider text-sky-700 block mb-1">Sentence Starter:</span>
-                                <p id="starter-display-text" class="text-purple-900 text-lg md:text-xl font-extrabold italic bg-sky-200/60 px-3 rounded-xl inline-block leading-[43px]">
+                                <p id="starter-display-text" class="text-purple-900 text-lg md:text-xl font-extrabold italic bg-sky-200/60 px-3.5 py-1.5 rounded-xl inline-block">
                                     Loading sentence starter...
                                 </p>
                             </div>
                         </div>
 
                         <!-- Bottom Star Icon + Edit Badge -->
-                        <div class="flex items-center justify-between pt-4 mt-2 border-t border-sky-200/60">
+                        <div class="flex items-center justify-between pt-4 mt-4 border-t border-sky-200/60">
                             <span class="text-xs font-semibold text-sky-700/70 group-hover:text-sky-900 transition-colors flex items-center gap-1">
                                 <i class="fa-solid fa-pen text-xs"></i> Tap display to edit
                             </span>
@@ -293,15 +315,55 @@
         let currentStarter = DEFAULT_STARTER;
 
         window.addEventListener('DOMContentLoaded', async () => {
+            displayCurrentDate();
             initAttendance();
             renderStudents();
             updateCounter();
             await fetchPromptFromSheet();
         });
 
+        /* Display Current Date in Header */
+        function displayCurrentDate() {
+            const today = new Date();
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            document.getElementById('date-text').textContent = today.toLocaleDateString('en-US', options);
+        }
+
+        /* Toggle Browser Fullscreen */
+        function toggleFullScreen() {
+            const icon = document.getElementById('fullscreen-icon');
+            const text = document.getElementById('fullscreen-text');
+
+            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                const docEl = document.documentElement;
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen();
+                } else if (docEl.msRequestFullscreen) {
+                    docEl.msRequestFullscreen();
+                } else if (docEl.mozRequestFullScreen) {
+                    docEl.mozRequestFullScreen();
+                } else if (docEl.webkitRequestFullscreen) {
+                    docEl.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                }
+                icon.className = "fa-solid fa-compress";
+                text.textContent = "Exit Full";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                icon.className = "fa-solid fa-expand";
+                text.textContent = "Full Screen";
+            }
+        }
+
         /* Fetch Google Sheet CSV & Match Today's Date */
         async function fetchPromptFromSheet() {
-            // Check for manual URL override first (?prompt=...&starter=...)
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('prompt')) {
                 currentPrompt = urlParams.get('prompt');
@@ -319,11 +381,9 @@
 
                 if (rows.length < 2) throw new Error("No data found in sheet");
 
-                // Get Today's Date formatted as M/D/YYYY
                 const today = new Date();
                 const formattedToday = formatDate(today);
 
-                // Find matching row by date (Column 0 = Date, Column 1 = Prompt, Column 2 = Starter)
                 let matchedRow = rows.find(row => {
                     if (!row[0]) return false;
                     const rowDate = new Date(row[0].trim());
@@ -334,7 +394,6 @@
                     currentPrompt = matchedRow[1] ? matchedRow[1].trim() : DEFAULT_PROMPT;
                     currentStarter = matchedRow[2] ? matchedRow[2].trim() : DEFAULT_STARTER;
                 } else {
-                    // Fallback to most recent row if today's date isn't found
                     const latestRow = rows[rows.length - 1];
                     currentPrompt = latestRow[1] ? latestRow[1].trim() : DEFAULT_PROMPT;
                     currentStarter = latestRow[2] ? latestRow[2].trim() : DEFAULT_STARTER;
@@ -356,7 +415,7 @@
             return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
         }
 
-        /* Helper to parse CSV properly handling quotes and newlines */
+        /* Parse CSV helper */
         function parseCSV(text) {
             const lines = text.split(/\r\n|\n/);
             return lines.map(line => {
