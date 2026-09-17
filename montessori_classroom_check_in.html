@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,7 +84,7 @@
             border-color: #a7f3d0;
         }
 
-        /* Clean Journal Display (Lines Removed) */
+        /* Clean Journal Display */
         .journal-lines {
             background-image: none;
             line-height: 1.5;
@@ -96,6 +98,17 @@
         }
         .btn-action:active {
             transform: translateY(1px);
+        }
+
+        /* Fireworks Canvas Overlay */
+        #fireworks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 90;
         }
 
         ::-webkit-scrollbar {
@@ -116,6 +129,16 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-slate-800">
 
+    <!-- FIREWORKS CANVAS -->
+    <canvas id="fireworks-canvas"></canvas>
+
+    <!-- CELEBRATION BANNER OVERLAY -->
+    <div id="celebration-banner" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] hidden pointer-events-none text-center">
+        <div class="bg-gradient-to-r from-amber-400 via-pink-500 to-purple-600 text-white font-black text-3xl md:text-6xl px-10 py-6 rounded-3xl shadow-2xl border-4 border-white animate-bounce">
+            🎉 Everyone is Here! Ready to Learn! 🚀
+        </div>
+    </div>
+
     <!-- TOP HEADER -->
     <header class="wavy-header pt-6 pb-12 px-6 relative shadow-sm">
         <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
@@ -126,7 +149,6 @@
                     Daily Classroom Check-In
                 </h1>
                 
-                <!-- Date Display Badge -->
                 <div id="current-date-display" 
                      class="bg-white/90 text-slate-700 font-extrabold text-sm md:text-base px-3.5 py-1.5 rounded-full border border-sky-300 shadow-sm flex items-center gap-2">
                     <i class="fa-regular fa-calendar-days text-sky-600"></i>
@@ -136,21 +158,18 @@
 
             <!-- Teacher Control Bar -->
             <div class="flex items-center flex-wrap justify-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white">
-                <!-- Fullscreen Button -->
                 <button id="btn-fullscreen" onclick="toggleFullScreen()" title="Toggle Fullscreen Mode"
                     class="btn-action bg-sky-600 hover:bg-sky-700 text-white font-bold px-3.5 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
                     <i id="fullscreen-icon" class="fa-solid fa-expand"></i>
                     <span id="fullscreen-text">Full Screen</span>
                 </button>
 
-                <!-- Reset Button -->
                 <button id="btn-reset" onclick="resetAttendance()" title="Uncheck all students"
                     class="btn-action bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
                     <i class="fa-solid fa-rotate-right"></i>
                     <span>Reset</span>
                 </button>
 
-                <!-- Edit Prompt Button -->
                 <button id="btn-edit-prompt" onclick="openPromptModal()" title="Edit Journal Prompt"
                     class="btn-action bg-purple-600 hover:bg-purple-700 text-white font-bold px-3.5 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square"></i>
@@ -159,7 +178,6 @@
             </div>
         </div>
 
-        <!-- Wavy Bottom Divider SVG -->
         <div class="wavy-svg">
             <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
                 <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
@@ -212,14 +230,11 @@
                     <div onclick="openPromptModal()" title="Click to edit prompt"
                          class="bg-[#e0f2fe] rounded-2xl p-6 flex-1 flex flex-col justify-between border-3 border-sky-300 relative shadow-md group cursor-pointer hover:bg-sky-100/80 transition-colors">
                         
-                        <!-- Clean Display Canvas Area (No Background Lines) -->
                         <div class="journal-lines pt-2 flex-1 space-y-4">
-                            <!-- Prompt Question -->
                             <p id="prompt-display-text" class="text-slate-800 text-xl md:text-2xl font-bold tracking-wide">
                                 Loading prompt...
                             </p>
                             
-                            <!-- Sentence Starter Box -->
                             <div class="pt-2">
                                 <span class="text-xs font-black uppercase tracking-wider text-sky-700 block mb-1">Sentence Starter:</span>
                                 <p id="starter-display-text" class="text-purple-900 text-lg md:text-xl font-extrabold italic bg-sky-200/60 px-3.5 py-1.5 rounded-xl inline-block">
@@ -228,7 +243,6 @@
                             </div>
                         </div>
 
-                        <!-- Bottom Star Icon + Edit Badge -->
                         <div class="flex items-center justify-between pt-4 mt-4 border-t border-sky-200/60">
                             <span class="text-xs font-semibold text-sky-700/70 group-hover:text-sky-900 transition-colors flex items-center gap-1">
                                 <i class="fa-solid fa-pen text-xs"></i> Tap display to edit
@@ -313,6 +327,7 @@
         let attendanceData = {};
         let currentPrompt = DEFAULT_PROMPT;
         let currentStarter = DEFAULT_STARTER;
+        let celebrationTriggered = false;
 
         window.addEventListener('DOMContentLoaded', async () => {
             displayCurrentDate();
@@ -322,47 +337,131 @@
             await fetchPromptFromSheet();
         });
 
-        /* Display Current Date in Header */
         function displayCurrentDate() {
             const today = new Date();
             const options = { weekday: 'long', month: 'short', day: 'numeric' };
             document.getElementById('date-text').textContent = today.toLocaleDateString('en-US', options);
         }
 
-        /* Toggle Browser Fullscreen */
         function toggleFullScreen() {
             const icon = document.getElementById('fullscreen-icon');
             const text = document.getElementById('fullscreen-text');
 
             if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
                 const docEl = document.documentElement;
-                if (docEl.requestFullscreen) {
-                    docEl.requestFullscreen();
-                } else if (docEl.msRequestFullscreen) {
-                    docEl.msRequestFullscreen();
-                } else if (docEl.mozRequestFullScreen) {
-                    docEl.mozRequestFullScreen();
-                } else if (docEl.webkitRequestFullscreen) {
-                    docEl.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-                }
+                if (docEl.requestFullscreen) docEl.requestFullscreen();
+                else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+                else if (docEl.mozRequestFullScreen) docEl.mozRequestFullScreen();
+                else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
                 icon.className = "fa-solid fa-compress";
                 text.textContent = "Exit Full";
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
+                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                 icon.className = "fa-solid fa-expand";
                 text.textContent = "Full Screen";
             }
         }
 
-        /* Fetch Google Sheet CSV & Match Today's Date */
+        /* --- CELEBRATION EFFECTS (Fireworks & Confetti) --- */
+        function triggerCelebration() {
+            // Show overlay banner
+            const banner = document.getElementById('celebration-banner');
+            banner.classList.remove('hidden');
+
+            // 1. Confetti Burst from Left & Right Cannon
+            const count = 200;
+            const defaults = { origin: { y: 0.7 } };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio)
+                }));
+            }
+
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+
+            // 2. Custom Fireworks Animation on Canvas
+            startFireworks();
+
+            // Hide banner after 4.5 seconds
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 4500);
+        }
+
+        function startFireworks() {
+            const canvas = document.getElementById('fireworks-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let particles = [];
+            const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#e84393', '#70a1ff'];
+
+            function createFirework(x, y) {
+                const particleCount = 60;
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 2 / particleCount) * i;
+                    const speed = Math.random() * 6 + 2;
+                    particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        alpha: 1,
+                        decay: Math.random() * 0.02 + 0.015
+                    });
+                }
+            }
+
+            // Burst several fireworks randomly across screen
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const rx = Math.random() * (canvas.width * 0.8) + canvas.width * 0.1;
+                    const ry = Math.random() * (canvas.height * 0.5) + canvas.height * 0.1;
+                    createFirework(rx, ry);
+                }, i * 400);
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach((p, index) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.05; // gravity effect
+                    p.alpha -= p.decay;
+
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    if (p.alpha <= 0) particles.splice(index, 1);
+                });
+
+                if (particles.length > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            animate();
+        }
+
+        /* Fetch Google Sheet CSV */
         async function fetchPromptFromSheet() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('prompt')) {
@@ -374,7 +473,7 @@
 
             try {
                 const response = await fetch(SHEET_CSV_URL);
-                if (!response.ok) throw new Error("Network response was not ok");
+                if (!response.ok) throw new Error("Network response failed");
                 
                 const csvText = await response.text();
                 const rows = parseCSV(csvText);
@@ -415,7 +514,6 @@
             return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
         }
 
-        /* Parse CSV helper */
         function parseCSV(text) {
             const lines = text.split(/\r\n|\n/);
             return lines.map(line => {
@@ -534,6 +632,7 @@
             DEFAULT_STUDENTS.forEach(name => {
                 attendanceData[name] = false;
             });
+            celebrationTriggered = false;
             saveAttendance();
             renderStudents();
             updateCounter();
@@ -548,8 +647,15 @@
             const badge = document.getElementById('completion-status');
             if (presentCount === totalCount && totalCount > 0) {
                 badge.classList.remove('hidden');
+                
+                // Trigger celebratory screen effect if not already triggered today
+                if (!celebrationTriggered) {
+                    celebrationTriggered = true;
+                    triggerCelebration();
+                }
             } else {
                 badge.classList.add('hidden');
+                celebrationTriggered = false;
             }
         }
     </script>
