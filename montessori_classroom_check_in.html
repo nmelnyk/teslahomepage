@@ -18,18 +18,66 @@
     <style>
         body {
             font-family: 'Fredoka', 'Nunito', sans-serif;
-            background-color: #f7fafc;
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
-        }
-
-        /* Wavy Header Effect */
-        .wavy-header {
-            background: linear-gradient(180deg, #74b9ff 0%, #81ecec 100%);
+            transition: background-color 0.5s ease;
             position: relative;
         }
 
+        /* --- MONTHLY THEME STYLES --- */
+        /* September: Fall / Back to School */
+        body.theme-sep { background-color: #fef3c7; }
+        body.theme-sep .wavy-header { background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); }
+        body.theme-sep .wavy-svg .shape-fill { fill: #fef3c7; }
+
+        /* October: Halloween / Autumn */
+        body.theme-oct { background-color: #f3e8ff; }
+        body.theme-oct .wavy-header { background: linear-gradient(180deg, #7e22ce 0%, #ea580c 100%); }
+        body.theme-oct .wavy-svg .shape-fill { fill: #f3e8ff; }
+
+        /* November: Thanksgiving / Harvest */
+        body.theme-nov { background-color: #fff7ed; }
+        body.theme-nov .wavy-header { background: linear-gradient(180deg, #c2410c 0%, #b45309 100%); }
+        body.theme-nov .wavy-svg .shape-fill { fill: #fff7ed; }
+
+        /* December: Christmas / Winter Holiday */
+        body.theme-dec { background-color: #f0fdf4; }
+        body.theme-dec .wavy-header { background: linear-gradient(180deg, #dc2626 0%, #15803d 100%); }
+        body.theme-dec .wavy-svg .shape-fill { fill: #f0fdf4; }
+
+        /* January: Deep Winter Snow */
+        body.theme-jan { background-color: #f0f9ff; }
+        body.theme-jan .wavy-header { background: linear-gradient(180deg, #0284c7 0%, #3730a3 100%); }
+        body.theme-jan .wavy-svg .shape-fill { fill: #f0f9ff; }
+
+        /* February: Hearts / Kindness */
+        body.theme-feb { background-color: #fdf2f8; }
+        body.theme-feb .wavy-header { background: linear-gradient(180deg, #ec4899 0%, #be185d 100%); }
+        body.theme-feb .wavy-svg .shape-fill { fill: #fdf2f8; }
+
+        /* March: Early Spring / St. Patrick's */
+        body.theme-mar { background-color: #ecfdf5; }
+        body.theme-mar .wavy-header { background: linear-gradient(180deg, #10b981 0%, #047857 100%); }
+        body.theme-mar .wavy-svg .shape-fill { fill: #ecfdf5; }
+
+        /* April: Spring Bloom */
+        body.theme-apr { background-color: #f0fdfa; }
+        body.theme-apr .wavy-header { background: linear-gradient(180deg, #06b6d4 0%, #10b981 100%); }
+        body.theme-apr .wavy-svg .shape-fill { fill: #f0fdfa; }
+
+        /* May: Blooming Summer */
+        body.theme-may { background-color: #fefce8; }
+        body.theme-may .wavy-header { background: linear-gradient(180deg, #eab308 0%, #16a34a 100%); }
+        body.theme-may .wavy-svg .shape-fill { fill: #fefce8; }
+
+        /* June/July/August: Bright Summer */
+        body.theme-summer { background-color: #e0f2fe; }
+        body.theme-summer .wavy-header { background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%); }
+        body.theme-summer .wavy-svg .shape-fill { fill: #e0f2fe; }
+
+        /* Wavy Header Base */
+        .wavy-header { position: relative; }
         .wavy-svg {
             position: absolute;
             bottom: 0;
@@ -38,7 +86,6 @@
             overflow: hidden;
             line-height: 0;
         }
-
         .wavy-svg svg {
             position: relative;
             display: block;
@@ -46,8 +93,18 @@
             height: 35px;
         }
 
-        .wavy-svg .shape-fill {
-            fill: #f7fafc;
+        /* Floating Background Seasonal Icons */
+        .floating-icon {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.15;
+            animation: floatSlow 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatSlow {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-20px) rotate(15deg); }
         }
 
         /* Custom Checkbox Design */
@@ -111,53 +168,46 @@
             z-index: 90;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-slate-800">
+
+    <!-- FLOATING SEASONAL ACCENTS -->
+    <div id="seasonal-bg-elements" class="fixed inset-0 pointer-events-none z-0"></div>
 
     <!-- FIREWORKS CANVAS -->
     <canvas id="fireworks-canvas"></canvas>
 
     <!-- CELEBRATION BANNER OVERLAY -->
     <div id="celebration-banner" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] hidden pointer-events-none text-center">
-        <div class="bg-gradient-to-r from-amber-400 via-pink-500 to-purple-600 text-white font-black text-3xl md:text-6xl px-10 py-6 rounded-3xl shadow-2xl border-4 border-white animate-bounce">
+        <div id="banner-text-box" class="bg-gradient-to-r from-amber-400 via-pink-500 to-purple-600 text-white font-black text-3xl md:text-6xl px-10 py-6 rounded-3xl shadow-2xl border-4 border-white animate-bounce">
             🎉 Everyone is Here! Ready to Learn! 🚀
         </div>
     </div>
 
     <!-- TOP HEADER -->
-    <header class="wavy-header pt-6 pb-12 px-6 relative shadow-sm">
+    <header class="wavy-header pt-6 pb-12 px-6 relative shadow-sm z-10">
         <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
             
             <!-- Title & Date Badge -->
             <div class="flex flex-col md:flex-row items-center gap-3 text-center md:text-left">
-                <h1 class="text-3xl md:text-5xl font-black text-slate-800 tracking-wide drop-shadow-sm">
+                <h1 class="text-3xl md:text-5xl font-black text-white tracking-wide drop-shadow-md">
                     Daily Classroom Check-In
                 </h1>
                 
                 <div id="current-date-display" 
-                     class="bg-white/90 text-slate-700 font-extrabold text-sm md:text-base px-3.5 py-1.5 rounded-full border border-sky-300 shadow-sm flex items-center gap-2">
-                    <i class="fa-regular fa-calendar-days text-sky-600"></i>
+                     class="bg-white/90 text-slate-800 font-extrabold text-sm md:text-base px-3.5 py-1.5 rounded-full border border-white shadow-sm flex items-center gap-2">
+                    <i id="season-icon" class="fa-regular fa-calendar-days text-amber-600"></i>
                     <span id="date-text">Loading date...</span>
                 </div>
             </div>
 
             <!-- Teacher Control Bar -->
-            <div class="flex items-center flex-wrap justify-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white">
+            <div class="flex items-center flex-wrap justify-center gap-3 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white">
                 <button id="btn-fullscreen" onclick="toggleFullScreen()" title="Toggle Fullscreen Mode"
                     class="btn-action bg-sky-600 hover:bg-sky-700 text-white font-bold px-3.5 py-2 rounded-xl text-sm md:text-base shadow flex items-center gap-2">
                     <i id="fullscreen-icon" class="fa-solid fa-expand"></i>
@@ -186,11 +236,11 @@
     </header>
 
     <!-- MAIN CONTAINER -->
-    <main class="max-w-7xl mx-auto w-full px-4 md:px-6 my-auto py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+    <main class="max-w-7xl mx-auto w-full px-4 md:px-6 my-auto py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch z-10 relative">
         
         <!-- LEFT PANEL: Attendance List -->
         <section class="lg:col-span-7 flex flex-col">
-            <div class="bg-white rounded-3xl border-4 border-emerald-400/60 shadow-xl overflow-hidden flex-1 flex flex-col">
+            <div class="bg-white/95 backdrop-blur-sm rounded-3xl border-4 border-emerald-400/60 shadow-xl overflow-hidden flex-1 flex flex-col">
                 
                 <div class="bg-[#5ec4a5] py-4 px-6 text-center border-b-4 border-emerald-500/30">
                     <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-wider flex items-center justify-center gap-3">
@@ -260,7 +310,7 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="py-3 text-center text-xs md:text-sm text-slate-400 font-semibold">
+    <footer class="py-3 text-center text-xs md:text-sm text-slate-500 font-semibold z-10 relative">
         Montessori Interactive Smartboard Check-In
     </footer>
 
@@ -330,6 +380,7 @@
         let celebrationTriggered = false;
 
         window.addEventListener('DOMContentLoaded', async () => {
+            applyMonthlyTheme();
             displayCurrentDate();
             initAttendance();
             renderStudents();
@@ -337,10 +388,94 @@
             await fetchPromptFromSheet();
         });
 
+        /* --- MONTHLY THEME ENGINE --- */
+        function applyMonthlyTheme() {
+            const month = new Date().getMonth(); // 0 = Jan, 8 = Sep, 9 = Oct, etc.
+            const body = document.body;
+            const seasonIcon = document.getElementById('season-icon');
+            const bgContainer = document.getElementById('seasonal-bg-elements');
+
+            let themeClass = '';
+            let iconClass = 'fa-calendar-days';
+            let bgIcons = [];
+
+            switch(month) {
+                case 8: // September
+                    themeClass = 'theme-sep';
+                    iconClass = 'fa-leaf text-amber-600';
+                    bgIcons = ['fa-leaf', 'fa-apple-whole', 'fa-book-open', 'fa-pencil'];
+                    break;
+                case 9: // October
+                    themeClass = 'theme-oct';
+                    iconClass = 'fa-ghost text-purple-600';
+                    bgIcons = ['fa-ghost', 'fa-spider', 'fa-hat-wizard', 'fa-cat'];
+                    break;
+                case 10: // November
+                    themeClass = 'theme-nov';
+                    iconClass = 'fa-wheat-awn text-orange-600';
+                    bgIcons = ['fa-leaf', 'fa-wheat-awn', 'fa-drumstick-bite', 'fa-tree'];
+                    break;
+                case 11: // December
+                    themeClass = 'theme-dec';
+                    iconClass = 'fa-snowflake text-sky-500';
+                    bgIcons = ['fa-snowflake', 'fa-tree', 'fa-gifts', 'fa-cookie'];
+                    break;
+                case 0: // January
+                    themeClass = 'theme-jan';
+                    iconClass = 'fa-snowflake text-sky-600';
+                    bgIcons = ['fa-snowflake', 'fa-icicles', 'fa-mitten', 'fa-cloud-meatball'];
+                    break;
+                case 1: // February
+                    themeClass = 'theme-feb';
+                    iconClass = 'fa-heart text-pink-600';
+                    bgIcons = ['fa-heart', 'fa-envelope-open-text', 'fa-face-smile-beam', 'fa-hand-holding-heart'];
+                    break;
+                case 2: // March
+                    themeClass = 'theme-mar';
+                    iconClass = 'fa-clover text-emerald-600';
+                    bgIcons = ['fa-clover', 'fa-cloud-sun-rain', 'fa-seedling', 'fa-rainbow'];
+                    break;
+                case 3: // April
+                    themeClass = 'theme-apr';
+                    iconClass = 'fa-spa text-teal-600';
+                    bgIcons = ['fa-umbrella', 'fa-cloud-showers-heavy', 'fa-spa', 'fa-bug'];
+                    break;
+                case 4: // May
+                    themeClass = 'theme-may';
+                    iconClass = 'fa-sun text-yellow-500';
+                    bgIcons = ['fa-sun', 'fa-spa', 'fa-bee', 'fa-seedling'];
+                    break;
+                default: // Summer (June, July, August)
+                    themeClass = 'theme-summer';
+                    iconClass = 'fa-sun text-amber-500';
+                    bgIcons = ['fa-sun', 'fa-umbrella-beach', 'fa-water', 'fa-fish'];
+                    break;
+            }
+
+            body.className = `min-h-screen flex flex-col justify-between overflow-x-hidden text-slate-800 ${themeClass}`;
+            seasonIcon.className = `fa-solid ${iconClass}`;
+
+            // Render floating background seasonal icons
+            bgContainer.innerHTML = '';
+            for (let i = 0; i < 12; i++) {
+                const icon = document.createElement('i');
+                const randomIcon = bgIcons[Math.floor(Math.random() * bgIcons.length)];
+                icon.className = `fa-solid ${randomIcon} floating-icon text-4xl md:text-6xl text-slate-700`;
+                icon.style.top = `${Math.random() * 85 + 5}%`;
+                icon.style.left = `${Math.random() * 90 + 5}%`;
+                icon.style.animationDelay = `${Math.random() * 5}s`;
+                bgContainer.appendChild(icon);
+            }
+        }
+
+        /* --- DATE FORMATTER: MM/DD/YY --- */
         function displayCurrentDate() {
             const today = new Date();
-            const options = { weekday: 'long', month: 'short', day: 'numeric' };
-            document.getElementById('date-text').textContent = today.toLocaleDateString('en-US', options);
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const yy = String(today.getFullYear()).slice(-2);
+            
+            document.getElementById('date-text').textContent = `${mm}/${dd}/${yy}`;
         }
 
         function toggleFullScreen() {
@@ -365,48 +500,65 @@
             }
         }
 
-        /* --- CELEBRATION EFFECTS (Fireworks & Confetti) --- */
+        /* --- SEASONAL CELEBRATION EFFECTS --- */
         function triggerCelebration() {
-            // Show overlay banner
+            const month = new Date().getMonth();
             const banner = document.getElementById('celebration-banner');
+            const bannerBox = document.getElementById('banner-text-box');
             banner.classList.remove('hidden');
 
-            // 1. Confetti Burst from Left & Right Cannon
-            const count = 200;
-            const defaults = { origin: { y: 0.7 } };
+            let colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502'];
+            let message = "🎉 Everyone is Here! Ready to Learn! 🚀";
 
-            function fire(particleRatio, opts) {
-                confetti(Object.assign({}, defaults, opts, {
-                    particleCount: Math.floor(count * particleRatio)
-                }));
+            // Seasonal custom color palettes & messages
+            if (month === 8 || month === 10) { // Fall / Nov
+                colors = ['#d97706', '#b45309', '#ea580c', '#f59e0b'];
+                message = "🍂 All Here! Fall Into Learning! 🍁";
+            } else if (month === 9) { // October
+                colors = ['#7e22ce', '#ea580c', '#facc15', '#a855f7'];
+                message = "🎃 Spooktacular! 100% Checked In! 👻";
+            } else if (month === 11 || month === 0) { // Winter / Dec / Jan
+                colors = ['#38bdf8', '#0284c7', '#22c55e', '#ef4444'];
+                message = "❄️ Winter Wonderful! Everyone's Present! ⛄";
+            } else if (month === 1) { // Feb
+                colors = ['#ec4899', '#f43f5e', '#fb7185', '#be185d'];
+                message = "💖 Class is Full of Heart & Kindness! 💕";
+            } else if (month >= 2 && month <= 4) { // Spring
+                colors = ['#10b981', '#06b6d4', '#facc15', '#a855f7'];
+                message = "🌸 Bloom & Grow! All Friends Are Here! 🌿";
+            } else { // Summer
+                colors = ['#f59e0b', '#06b6d4', '#3b82f6', '#10b981'];
+                message = "☀️ Bright Smiles! 100% Attendance! 🏖️";
             }
 
-            fire(0.25, { spread: 26, startVelocity: 55 });
-            fire(0.2, { spread: 60 });
-            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-            fire(0.1, { spread: 120, startVelocity: 45 });
+            bannerBox.textContent = message;
 
-            // 2. Custom Fireworks Animation on Canvas
-            startFireworks();
+            // Launch Confetti with Seasonal Palette
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 },
+                colors: colors
+            });
 
-            // Hide banner after 4.5 seconds
+            // Launch Seasonal Fireworks
+            startFireworks(colors);
+
             setTimeout(() => {
                 banner.classList.add('hidden');
             }, 4500);
         }
 
-        function startFireworks() {
+        function startFireworks(colorPalette) {
             const canvas = document.getElementById('fireworks-canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
             let particles = [];
-            const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#e84393', '#70a1ff'];
 
             function createFirework(x, y) {
-                const particleCount = 60;
+                const particleCount = 65;
                 for (let i = 0; i < particleCount; i++) {
                     const angle = (Math.PI * 2 / particleCount) * i;
                     const speed = Math.random() * 6 + 2;
@@ -415,20 +567,19 @@
                         y: y,
                         vx: Math.cos(angle) * speed,
                         vy: Math.sin(angle) * speed,
-                        color: colors[Math.floor(Math.random() * colors.length)],
+                        color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
                         alpha: 1,
                         decay: Math.random() * 0.02 + 0.015
                     });
                 }
             }
 
-            // Burst several fireworks randomly across screen
             for (let i = 0; i < 5; i++) {
                 setTimeout(() => {
                     const rx = Math.random() * (canvas.width * 0.8) + canvas.width * 0.1;
                     const ry = Math.random() * (canvas.height * 0.5) + canvas.height * 0.1;
                     createFirework(rx, ry);
-                }, i * 400);
+                }, i * 350);
             }
 
             function animate() {
@@ -437,14 +588,14 @@
                 particles.forEach((p, index) => {
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.vy += 0.05; // gravity effect
+                    p.vy += 0.05;
                     p.alpha -= p.decay;
 
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, p.alpha);
                     ctx.fillStyle = p.color;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
 
@@ -648,7 +799,6 @@
             if (presentCount === totalCount && totalCount > 0) {
                 badge.classList.remove('hidden');
                 
-                // Trigger celebratory screen effect if not already triggered today
                 if (!celebrationTriggered) {
                     celebrationTriggered = true;
                     triggerCelebration();
