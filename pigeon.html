@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Exploding Pigeons Deck</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        :root {
+            --bg-color: #121216;
+            --card-width: 280px;
+            --card-height: 410px;
+        }
+
+        body {
+            font-family: 'Arial Black', Impact, sans-serif;
+            background-color: var(--bg-color);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            width: 100%;
+            padding: 15px 20px 5px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #ff4757;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        .subtitle {
+            font-family: Arial, sans-serif;
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            background: #2a2b32;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 0 #000;
+            text-transform: uppercase;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+        }
+
+        .fullscreen-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        /* Table & Deck Area */
+        .table-area {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        /* Underneath Static Deck Stack */
+        .deck-stack-underneath {
+            position: absolute;
+            width: var(--card-width);
+            height: var(--card-height);
+            border-radius: 18px;
+            background-color: #ffffff;
+            box-shadow: 
+                0 4px 0 #d0d0d0,
+                0 8px 0 #b0b0b0,
+                0 12px 0 #909090,
+                0 16px 20px rgba(0,0,0,0.6);
+            border: 4px solid #ffffff;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .deck-stack-underneath img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+        }
+
+        .deck-stack-underneath.empty {
+            background: #222;
+            border: 4px dashed #444;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 1.2rem;
+        }
+
+        /* Top Active Card Container */
+        .card-container {
+            position: absolute;
+            width: var(--card-width);
+            height: var(--card-height);
+            perspective: 1000px;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        }
+
+        /* Card 3D Inner */
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 18px;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            border: 4px solid #ffffff;
+            overflow: hidden;
+        }
+
+        /* Card Back (Default Face-Down with Image) */
+        .card-back-face {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-back-face img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+        }
+
+        /* Card Front (Flipped Noun View) */
+        .card-front-face {
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background-color: #ffffff;
+        }
+
+        .black-box {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            width: 100%;
+            height: 78%;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .word-text {
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            word-break: break-word;
+            line-height: 1.25;
+            color: #ffffff;
+        }
+
+        .footer-text {
+            font-family: 'Arial Black', sans-serif;
+            color: #888888;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        /* Swipe Animations */
+        .swipe-left {
+            transform: translateX(-150%) rotate(-20deg) !important;
+            opacity: 0 !important;
+        }
+
+        .swipe-right {
+            transform: translateX(150%) rotate(20deg) !important;
+            opacity: 0 !important;
+        }
+
+        /* Bottom Controls */
+        .controls {
+            width: 100%;
+            padding: 10px 20px 25px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        button.action-btn {
+            flex: 1;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            padding: 14px 10px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            font-family: 'Arial Black', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #b32d38;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+        }
+
+        button.action-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #b32d38;
+        }
+
+        button.action-btn.secondary {
+            background-color: #2ed573;
+            box-shadow: 0 4px 0 #1e9650;
+        }
+
+        button.action-btn.secondary:active {
+            box-shadow: 0 1px 0 #1e9650;
+        }
+
+        button.action-btn.alt {
+            background-color: #3a3b45;
+            box-shadow: 0 4px 0 #22232a;
+        }
+
+        button.action-btn.alt:active {
+            box-shadow: 0 1px 0 #22232a;
+        }
+
+        .counter {
+            font-family: Arial, sans-serif;
+            font-size: 0.85rem;
+            color: #aaa;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="fullscreen-btn" id="fs-btn" onclick="toggleFullScreen()">⛶ Fullscreen</button>
+        <h1>Exploding Pigeons</h1>
+        <div class="subtitle">Tap card to flip • Swipe left for next</div>
+    </header>
+
+    <div class="table-area">
+        <!-- Deck Base Stack (Always underneath) -->
+        <div class="deck-stack-underneath" id="deck-base">
+            <img src="https://www.explodingkittens.com/cdn/shop/files/EXPI-CORE_400x400_Shaker_bf3bace9-6a91-4bfe-b6c1-cdaa5c3061eb.png?v=1751138318&width=700" alt="Card Deck">
+        </div>
+
+        <!-- Active Top Card -->
+        <div class="card-container" id="active-card">
+            <div class="card-inner">
+                <!-- Card Back (Default view when drawn) -->
+                <div class="card-face card-back-face">
+                    <img src="https://www.explodingkittens.com/cdn/shop/files/EXPI-CORE_400x400_Shaker_bf3bace9-6a91-4bfe-b6c1-cdaa5c3061eb.png?v=1751138318&width=700" alt="Exploding Pigeons">
+                </div>
+                <!-- Card Front (Word revealed upon tap) -->
+                <div class="card-face card-front-face">
+                    <div class="black-box">
+                        <div class="word-text" id="card-word">LOADING...</div>
+                    </div>
+                    <div class="footer-text">EXPLODING PIGEON</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="btn-group">
+            <button class="action-btn alt" onclick="prevCard()">Prev</button>
+            <button class="action-btn secondary" onclick="shuffleDeck()">Shuffle</button>
+            <button class="action-btn" onclick="nextCard()">Next</button>
+        </div>
+        <div class="counter" id="card-counter">Card 1 of 500</div>
+    </div>
+
+    <script>
+        // 500 Family-Friendly Nouns (Ages 7+)
+        const wordList = [
+            "Airplane", "Alien", "Alligator", "Anchor", "Angel", "Ant", "Apple", "Armor", "Astronaut", "Avocado",
+            "Baboon", "Baby", "Bacon", "Badger", "Bagel", "Bagpipe", "Balloon", "Banana", "Bandage", "Banjo",
+            "Baseball", "Basket", "Basketball", "Bat", "Bathtub", "Battery", "Beach Ball", "Bear", "Beaver", "Bee",
+            "Beehive", "Bell", "Bicycle", "Binoculars", "Bird", "Birthday Cake", "Biscuit", "Black Hole", "Blanket", "Blender",
+            "Blimp", "Lego Brick", "Bobsled", "Bone", "Bongo", "Book", "Boomerang", "Boot", "Bottle", "Boulder",
+            "Bowling Ball", "Boxer", "Brain", "Bread", "Brick", "Broccoli", "Broom", "Bubble", "Bucket", "Buffalo",
+            "Buguette", "Bulldozer", "Bumblebee", "Bunny", "Burrito", "Bus", "Butterfly", "Cabbage", "Cactus", "Cage",
+            "Cake", "Camel", "Camera", "Campfire", "Candle", "Candy", "Canoe", "Captain", "Car", "Carrot",
+            "Castle", "Cat", "Caterpillar", "Cauliflower", "Cave", "Centipede", "Chain", "Chameleon", "Cheetah", "Cheese",
+            "Cheeseburger", "Cherry", "Chest", "Chicken", "Chimpanzee", "Chipmunk", "Chocolate", "Chopsticks", "Circle", "Circus",
+            "Clam", "Clarinet", "Clock", "Cloud", "Clown", "Clover", "Coat", "Cobra", "Coconut", "Coins",
+            "Cookie", "Corn", "Cow", "Cowboy", "Crab", "Crayon", "Cricket", "Crocodile", "Crow", "Crown",
+            "Crystal", "Cucumber", "Cupcake", "Daisy", "Dance", "Dandelion", "Dart", "Diamond", "Dinosaurs", "Doctor",
+            "Dog", "Dolphin", "Donkey", "Donut", "Door", "Dragon", "Dragonfly", "Drum", "Duck", "Dumpling",
+            "Eagle", "Earth", "Eel", "Egg", "Elephant", "Elf", "Elk", "Engine", "Eraser", "Explosion",
+            "Eye", "Eyeball", "Falcon", "Fan", "Feather", "Fence", "Ferret", "Fire", "Fire Engine", "Firecracker",
+            "Firefly", "Fireman", "Fireworks", "Fish", "Flamingo", "Flashlight", "Flea", "Flower", "Flute", "Fly",
+            "Flying Saucer", "Fog", "Foot", "Football", "Forest", "Fork", "Fossil", "Fountain", "Fox", "French Fries",
+            "Frisbee", "Frog", "Fruit", "Gargoyle", "Garlic", "Gas", "Gecko", "Ghost", "Giant", "Gift",
+            "Giraffe", "Glacier", "Glass", "Globe", "Glove", "Gnome", "Goat", "Goblin", "Gold", "Goldfish",
+            "Golf Ball", "Goose", "Gorilla", "Grape", "Grass", "Grasshopper", "Gravy", "Green Goblin", "Guitar", "Gumball",
+            "Gummy Bear", "Hamburger", "Hammer", "Hamster", "Hat", "Hawk", "Hedgehog", "Helicopter", "Helmet", "Hippo",
+            "Honey", "Honeybee", "Hook", "Horn", "Horse", "Hot Dog", "Hot Air Balloon", "House", "Ice", "Ice Cream",
+            "Ice Cube", "Iceberg", "Igloo", "Iguana", "Island", "Jacket", "Jaguar", "Jelly", "Jellyfish", "Jet",
+            "Jester", "Jewel", "Jigsaw", "Juice", "Jungle", "Kangaroo", "Kazoo", "Ketchup", "Kettle", "Key",
+            "Kitten", "Kiwi", "Knee", "Knife", "Knight", "Koala", "Ladder", "Ladybug", "Lamp", "Lantern", "Laser",
+            "Leaf", "Lemon", "Lemur", "Leopard", "Letter", "Lighthouse", "Lightning", "Lion", "Lizard", "Llama",
+            "Lobster", "Lock", "Lollipop", "Magnet", "Magnifying Glass", "Mango", "Map", "Marble", "Marshmallow", "Mask",
+            "Match", "Medal", "Megaphone", "Melon", "Mermaid", "Meteor", "Microphone", "Microscope", "Milk", "Milkshake",
+            "Mirror", "Missile", "Mitten", "Mole", "Monkey", "Monster", "Moon", "Moose", "Mosquito", "Motorcycle",
+            "Mountain", "Mouse", "Muffin", "Mummy", "Mushroom", "Mustard", "Nail", "Needle", "Nest", "Ninja",
+            "Noodle", "Nose", "Nut", "Oak Tree", "Oar", "Ocean", "Octopus", "Ogre", "Omelet", "Onion",
+            "Orange", "Orangutan", "Ostrich", "Otter", "Owl", "Oyster", "Package", "Padlock", "Paintbrush", "Pajamas",
+            "Pancake", "Panda", "Panther", "Papaya", "Paper", "Parachute", "Parrot", "Peanut", "Pear", "Pearl",
+            "Pelican", "Penguin", "Pepper", "Pepperoni", "Piano", "Pickle", "Pie", "Pig", "Pigeon", "Pillow",
+            "Pineapple", "Pinecone", "PIRATE", "Pitchfork", "Pizza", "Planet", "Plant", "Plate", "Plow", "Plum",
+            "Plunger", "Polar Bear", "Pond", "Poodle", "Popcorn", "Popcorn Bucket", "Popsicle", "Porcupine", "Pot", "Potato",
+            "Potion", "Pretzel", "Prism", "Pudding", "Puddle", "Puffin", "Pumba", "Pumpkin", "Puppy", "Pyramid",
+            "Queen", "Quicksand", "Quill", "Rabbit", "Raccoon", "Racquet", "Radar", "Radio", "Radish", "Rainbow",
+            "Rake", "Rat", "Rattlesnake", "Raven", "Ray Gun", "Refrigerator", "Reindeer", "Rhinoceros", "Ring", "River",
+            "Robot", "Rocket", "Rocking Horse", "Rope", "Rose", "Rubber Duck", "Ruby", "Ruler", "Saddle", "Sailboat",
+            "Salamander", "Salmon", "Sandcastle", "Sandwich", "Santa", "Sardine", "Satellite", "Saxophone", "Scarecrow", "Scissors",
+            "Scooter", "Scorpion", "Screwdriver", "Sculpture", "Sea Turtle", "Seagull", "Seahorse", "Seal", "Seaweed", "Shark",
+            "Sheep", "Shield", "Ship", "Shoe", "Shovel", "Shrimp", "Skeleton", "Skateboard", "Skunk", "Sled",
+            "Sloth", "Slug", "Snail", "Snake", "Sneaker", "Snowman", "Soap", "Sock", "Soup", "Space Shuttle",
+            "Spaceship", "Spaghetti", "Spatula", "Spider", "Spiderweb", "Sponge", "Spoon", "Spring", "Squid", "Squirrel",
+            "Stage", "Star", "Starfish", "Statue", "Steak", "Stethoscope", "Stick", "Stinger", "Stone", "Strawberry",
+            "Submarine", "Sun", "Sunflower", "Sunglasses", "Superhero", "Surfboard", "Swan", "Sweater", "Sword", "Taco",
+            "Tadpole", "Tambourine", "Tape", "Tarantula", "Taxi", "Teacup", "Teapot", "Teddy Bear", "Telescope", "Tennis Ball",
+            "Tent", "Tiger", "Toad", "Toast", "Toe", "Tomato", "Tooth", "Toothbrush", "Toothpick", "Top Hat",
+            "Torch", "Tornado", "Torpedo", "Tortoise", "Toucan", "Towel", "Tower", "Toy", "Tractor", "Train",
+            "Trampoline", "Treasure", "Tree", "Tricycle", "Trident", "Trombone", "Trophy", "Truck", "Trumpet", "Tuba",
+            "Turkey", "Turtle", "Tutu", "TV", "T-Rex", "UFO", "Umbrella", "Unicorn", "Vampire", "Van",
+            "Vase", "Violin", "Volcano", "Vulture", "Waffle", "Walrus", "Wand", "Warrior", "Wasp", "Watch",
+            "Watermelon", "Wave", "Whale", "Wheel", "Whistle", "Windmill", "Window", "Wings", "Wizard", "Wolf",
+            "Wolverine", "Woodpecker", "Worm", "X-Ray", "Yak", "Yo-Yo", "Zebra", "Zeppelin", "Zombie"
+        ];
+
+        let deck = [...wordList];
+        let currentIndex = 0;
+        let isFlipped = false;
+        let wakeLock = null;
+
+        const activeCard = document.getElementById('active-card');
+        const cardWord = document.getElementById('card-word');
+        const cardCounter = document.getElementById('card-counter');
+        const deckBase = document.getElementById('deck-base');
+
+        function updateCardDisplay() {
+            cardWord.textContent = deck[currentIndex];
+            cardCounter.textContent = `Card ${currentIndex + 1} of ${deck.length}`;
+            
+            activeCard.classList.remove('flipped');
+            isFlipped = false;
+
+            if (currentIndex < deck.length - 1) {
+                deckBase.classList.remove('empty');
+            } else {
+                deckBase.classList.add('empty');
+                deckBase.innerHTML = "DECK EMPTY";
+            }
+        }
+
+        function toggleFlip() {
+            activeCard.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        function nextCard() {
+            if (currentIndex >= deck.length - 1) return;
+            
+            activeCard.classList.add('swipe-left');
+
+            setTimeout(() => {
+                activeCard.style.transition = 'none';
+                activeCard.classList.remove('swipe-left');
+                currentIndex++;
+                updateCardDisplay();
+
+                void activeCard.offsetWidth;
+                activeCard.style.transition = '';
+            }, 300);
+        }
+
+        function prevCard() {
+            if (currentIndex <= 0) return;
+
+            activeCard.classList.add('swipe-right');
+
+            setTimeout(() => {
+                activeCard.style.transition = 'none';
+                activeCard.classList.remove('swipe-right');
+                currentIndex--;
+                updateCardDisplay();
+
+                void activeCard.offsetWidth;
+                activeCard.style.transition = '';
+            }, 300);
+        }
+
+        function shuffleDeck() {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            currentIndex = 0;
+            updateCardDisplay();
+        }
+
+        // Keep Screen Awake Function
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.log(`Wake Lock Error: ${err.message}`);
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+                requestWakeLock();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                releaseWakeLock();
+            }
+        }
+
+        // Re-acquire wake lock if tab loses and regain focus
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        // Tap on active card to flip face
+        activeCard.addEventListener('click', (e) => {
+            if (Math.abs(touchEndX - touchStartX) < 10) {
+                toggleFlip();
+            }
+        });
+
+        // Swipe Gesture Handling
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) {
+                nextCard();
+            } else if (touchEndX > touchStartX + swipeThreshold) {
+                prevCard();
+            }
+        }
+
+        // Initial setup
+        updateCardDisplay();
+    </script>
+</body>
+</html>
