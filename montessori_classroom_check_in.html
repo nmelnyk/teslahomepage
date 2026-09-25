@@ -259,6 +259,192 @@
                     </div>
 
                     <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-sm md:text-base text-slate-600 font-bold px-2">
+                        <span>Present: <span id="count-present" class="text-emerald-600 text-xl font-black">0</span> / <span id="count-total">17</span></span>
+                        <span id="completion-status" class="hidden bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+                            🎉 All Present!
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Journal Prompt Card -->
+        <section class="lg:col-span-5 flex flex-col">
+            <div class="bg-[#9d68c4] rounded-3xl p-3 border-4 border-purple-800/30 shadow-xl flex-1 flex flex-col">
+                
+                <div class="py-3 px-6 text-center mb-3">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-wider flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        Daily Journal Prompt
+                    </h2>
+                </div>
+
+                <div class="bg-[#ff6b4a] rounded-2xl p-4 flex-1 flex flex-col border-4 border-orange-600/30 shadow-inner">
+                    
+                    <div onclick="openPromptModal()" title="Click to edit prompt"
+                         class="bg-[#e0f2fe] rounded-2xl p-6 flex-1 flex flex-col justify-between border-3 border-sky-300 relative shadow-md group cursor-pointer hover:bg-sky-100/80 transition-colors">
+                        
+                        <div class="journal-lines pt-2 flex-1 space-y-4">
+                            <p id="prompt-display-text" class="text-slate-800 text-xl md:text-2xl font-bold tracking-wide">
+                                Loading prompt...
+                            </p>
+                            
+                            <div class="pt-2">
+                                <span class="text-xs font-black uppercase tracking-wider text-sky-700 block mb-1">Sentence Starter:</span>
+                                <p id="starter-display-text" class="text-purple-900 text-lg md:text-xl font-extrabold italic bg-sky-200/60 px-3.5 py-1.5 rounded-xl inline-block">
+                                    Loading sentence starter...
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 mt-4 border-t border-sky-200/60">
+                            <span class="text-xs font-semibold text-sky-700/70 group-hover:text-sky-900 transition-colors flex items-center gap-1">
+                                <i class="fa-solid fa-pen text-xs"></i> Tap display to edit
+                            </span>
+                            
+                            <div class="text-amber-400 group-hover:scale-125 transition-transform duration-300 drop-shadow-sm">
+                                <i class="fa-solid fa-star text-3xl md:text-4xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="py-3 text-center text-xs md:text-sm text-slate-500 font-semibold z-10 relative">
+        Montessori Interactive Smartboard Check-In
+    </footer>
+
+    <!-- EDIT PROMPT MODAL -->
+    <div id="prompt-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border-4 border-purple-400 animate-fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-purple-600"></i> Edit Daily Prompt
+                </h3>
+                <button onclick="closePromptModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">
+                    &times;
+                </button>
+            </div>
+            
+            <p class="text-sm text-slate-500 mb-4 font-medium">
+                Manually edit the daily prompt and sentence starter for this session.
+            </p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Journal Question Prompt:</label>
+                    <textarea id="prompt-input" rows="3" 
+                        class="w-full p-3 border-2 border-purple-200 rounded-2xl text-base font-semibold focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all text-slate-800"
+                        placeholder="Enter prompt text here..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Sentence Starter:</label>
+                    <input id="starter-input" type="text" 
+                        class="w-full p-3 border-2 border-purple-200 rounded-2xl text-base font-bold focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all text-purple-900"
+                        placeholder="e.g. Today I am excited because...">
+                </div>
+            </div>
+
+            <div class="mt-6 flex gap-3 justify-end">
+                <button onclick="closePromptModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100">
+                    Cancel
+                </button>
+                <button onclick="savePromptModal()" class="px-6 py-2.5 rounded-xl font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md btn-action">
+                    Save Prompt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Published Web CSV Endpoint
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSM2rPQMM7N57hm-9To8O9id7qQ4ux0wrB1jNM1h4kVKqDCPONr1iF67i4EovRMtoHSsGBm2TtX9TCa/pub?gid=0&single=true&output=csv";
+
+        // Default Student Roster (Alphabetized with Miles & Hartford)
+        const DEFAULT_STUDENTS = [
+            "Abigail", "Ale", "Brady",
+            "Conor", "Evie", "Hartford",
+            "Jett", "Julia", "Leo",
+            "Liam", "Maddy Grace", "Miles",
+            "Palmer", "Preston G", "Preston T",
+            "Reagan", "Wildes"
+        ];
+
+        const DEFAULT_PROMPT = "What is one thing you are excited to learn or share with the class this week?";
+        const DEFAULT_STARTER = "One thing I want to share is...";
+
+        // Application State
+        let attendanceData = {};
+        let currentPrompt = DEFAULT_PROMPT;
+        let currentStarter = DEFAULT_STARTER;
+        let celebrationTriggered = false;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            applyMonthlyTheme();
+            displayCurrentDate();
+            initAttendance();
+            renderStudents();
+            updateCounter();
+            await fetchPromptFromSheet();
+        });
+
+        /* --- ENHANCED DENSE SEASONAL BACKGROUND ENGINE --- */
+        function applyMonthlyTheme() {
+            const month = new Date().getMonth();
+            const body = document.body;
+            const seasonIcon = document.getElementById('season-icon');
+            const bgContainer = document.getElementById('seasonal-bg-elements');
+
+            let themeClass = '';
+            let iconClass = 'fa-calendar-days';
+            let bgIcons = [];
+            let iconColors = [];
+
+            switch(month) {
+                case 8: // September
+                    themeClass = 'theme-sep';
+                    iconClass = 'fa-leaf text-amber-600';
+                    bgIcons = ['fa-leaf', 'fa-apple-whole', 'fa-book-open', 'fa-pencil', 'fa-tree'];
+                    iconColors = ['text-amber-600', 'text-amber-700', 'text-orange-600', 'text-yellow-600'];
+                    break;
+                case 9: // October
+                    themeClass = 'theme-oct';
+                    iconClass = 'fa-ghost text-purple-600';
+                    bgIcons = ['fa-ghost', 'fa-spider', 'fa-hat-wizard', 'fa-cat', 'fa-apple-whole'];
+                    iconColors = ['text-purple-600', 'text-orange-600', 'text-amber-600', 'text-slate-700'];
+                    break;
+                case 10: // November
+                    themeClass = 'theme-nov';
+                    iconClass = 'fa-   <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto w-full px-4 md:px-6 my-auto py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch z-10 relative">
+        
+        <!-- LEFT PANEL: Attendance List -->
+        <section class="lg:col-span-7 flex flex-col">
+            <div class="bg-white/95 backdrop-blur-sm rounded-3xl border-4 border-emerald-400/60 shadow-xl overflow-hidden flex-1 flex flex-col">
+                
+                <div class="bg-[#5ec4a5] py-4 px-6 text-center border-b-4 border-emerald-500/30">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-wider flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-clipboard-user"></i>
+                        Attendance List
+                    </h2>
+                </div>
+
+                <div class="p-6 flex-1 flex flex-col justify-around">
+                    <div id="attendance-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- Dynamic student tiles -->
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-sm md:text-base text-slate-600 font-bold px-2">
                         <span>Present: <span id="count-present" class="text-emerald-600 text-xl font-black">0</span> / <span id="count-total">15</span></span>
                         <span id="completion-status" class="hidden bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
                             🎉 All Present!
