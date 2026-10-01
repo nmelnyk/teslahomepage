@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Montessori Interactive Calendar</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts for Kid-Friendly Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Fredoka', cursive, sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Dragging & Tile styles */
+        .number-tile {
+            touch-action: none;
+            cursor: grab;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .number-tile:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        .number-tile.dragging {
+            opacity: 0.8;
+            z-index: 50;
+        }
+
+        .drop-slot {
+            transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .drop-slot.drag-over {
+            transform: scale(1.04);
+            border-style: solid !important;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Keyframe Animations */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.12); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wobble {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px) rotate(-3deg); }
+            40% { transform: translateX(6px) rotate(3deg); }
+            60% { transform: translateX(-4px) rotate(-1deg); }
+            80% { transform: translateX(4px) rotate(1deg); }
+        }
+
+        .animate-pop {
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-wobble {
+            animation: wobble 0.4s ease-in-out;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col transition-colors duration-500 pb-12 select-none overflow-x-hidden" id="app-body">
+
+    <!-- Header Navigation Controls -->
+    <header class="w-full px-4 py-3 max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3 z-10">
+        <!-- Logo / Title -->
+        <div class="flex items-center gap-2">
+            <span id="theme-badge-icon" class="text-3xl md:text-4xl">🎃</span>
+            <h1 class="text-2xl md:text-3xl font-bold tracking-wide" id="app-title">My Montessori Calendar</h1>
+        </div>
+
+        <!-- Month Navigation Controls -->
+        <div class="flex items-center gap-1 sm:gap-2 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-sm border border-white/60">
+            <button id="prev-month-btn" class="p-1.5 hover:bg-black/5 active:scale-90 rounded-xl text-lg font-black transition-all" title="Previous Month">
+                ◀️
+            </button>
+            
+            <label for="month-select" class="sr-only">Select Month</label>
+            <select id="month-select" class="bg-transparent font-bold text-gray-800 text-base md:text-lg focus:outline-none cursor-pointer">
+                <!-- Populated dynamically -->
+            </select>
+            
+            <label for="year-select" class="sr-only">Select Year</label>
+            <select id="year-select" class="bg-transparent font-bold text-gray-800 text-base md:text-lg focus:outline-none cursor-pointer">
+                <!-- Populated dynamically -->
+            </select>
+
+            <button id="next-month-btn" class="p-1.5 hover:bg-black/5 active:scale-90 rounded-xl text-lg font-black transition-all" title="Next Month">
+                ▶️
+            </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- Smartboard Fullscreen Button -->
+            <button id="fullscreen-btn" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold shadow-md transition-all text-sm md:text-base" title="Toggle Smartboard Fullscreen">
+                📺 <span id="fullscreen-btn-text">Fullscreen</span>
+            </button>
+
+            <!-- Mute Toggle -->
+            <button id="sound-btn" class="p-2.5 rounded-xl bg-white/80 hover:bg-white text-gray-700 shadow-sm border border-white/60 transition-all text-xl active:scale-95" title="Toggle Sound">
+                🔊
+            </button>
+            
+            <!-- Reset Month Button -->
+            <button id="reset-btn" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold shadow-md transition-all text-sm md:text-base">
+                🔄 <span>Reset Month</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-5xl mx-auto px-2 sm:px-4 flex-1 flex flex-col gap-4 mt-1">
+        
+        <!-- Seasonal Banner Header Card -->
+        <div id="calendar-header-card" class="rounded-3xl p-4 md:p-6 text-center shadow-lg transition-all duration-500 relative overflow-hidden border-2 border-white/60">
+            <!-- Seasonal Background Decorative Elements -->
+            <div id="header-decor-left" class="absolute left-3 top-1/2 -translate-y-1/2 text-4xl md:text-6xl opacity-80 pointer-events-none">🍁</div>
+            <div id="header-decor-right" class="absolute right-3 top-1/2 -translate-y-1/2 text-4xl md:text-6xl opacity-80 pointer-events-none">🎃</div>
+            
+            <h2 id="calendar-month-title" class="text-3xl md:text-5xl font-black tracking-wider drop-shadow-sm capitalize">
+                October 2026
+            </h2>
+            <p id="theme-tagline" class="text-sm md:text-base font-semibold mt-1 opacity-90">
+                Spooky Fall Fun! Drag the numbers to complete the calendar.
+            </p>
+
+            <!-- Progress Meter -->
+            <div class="max-w-xs mx-auto mt-3 bg-black/10 rounded-full h-3 p-0.5 backdrop-blur-sm overflow-hidden">
+                <div id="progress-bar" class="h-full rounded-full transition-all duration-300 bg-white" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Calendar Main Board -->
+        <div class="bg-white/90 backdrop-blur-md rounded-3xl p-3 sm:p-5 shadow-xl border border-white/80">
+            
+            <!-- Days of Week Headers (Montessori Colored Accents) -->
+            <div class="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center font-bold text-xs sm:text-base">
+                <div class="py-1.5 rounded-xl bg-red-100/80 text-red-700">Sun</div>
+                <div class="py-1.5 rounded-xl bg-blue-100/80 text-blue-700">Mon</div>
+                <div class="py-1.5 rounded-xl bg-blue-100/80 text-blue-700">Tue</div>
+                <div class="py-1.5 rounded-xl bg-blue-100/80 text-blue-700">Wed</div>
+                <div class="py-1.5 rounded-xl bg-blue-100/80 text-blue-700">Thu</div>
+                <div class="py-1.5 rounded-xl bg-blue-100/80 text-blue-700">Fri</div>
+                <div class="py-1.5 rounded-xl bg-red-100/80 text-red-700">Sat</div>
+            </div>
+
+            <!-- 7-Column Blank Calendar Grid Target Slots -->
+            <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 sm:gap-2.5 min-h-[300px] sm:min-h-[420px]">
+                <!-- Blank Drop slots populated dynamically via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Draggable Number Bank Tray -->
+        <div class="bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-xl border border-white/80 flex flex-col gap-2">
+            <div class="flex items-center justify-between px-1">
+                <span class="text-base sm:text-lg font-bold text-gray-700 flex items-center gap-2">
+                    <span>✨ Number Bank</span>
+                    <span class="text-xs font-normal text-gray-500 hidden sm:inline">(Drag numbers up onto the clean grid)</span>
+                </span>
+                <button id="shuffle-btn" class="text-xs sm:text-sm font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-xl transition-colors active:scale-95">
+                    🔀 Reshuffle Numbers
+                </button>
+            </div>
+
+            <!-- Number Bank Container -->
+            <div id="number-bank" class="flex flex-wrap gap-2.5 sm:gap-3 justify-center items-center p-3 min-h-[90px] rounded-2xl bg-gray-50/80 border-2 border-dashed border-gray-200">
+                <!-- Draggable tiles populated dynamically -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Celebration Modal -->
+    <div id="completion-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full text-center shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-amber-300" id="completion-card">
+            <div id="modal-icon" class="text-6xl md:text-7xl mb-2 animate-bounce">🎉</div>
+            <h3 id="modal-title" class="text-3xl font-black text-gray-800 mb-1">Fantastic Job!</h3>
+            <p id="modal-msg" class="text-lg font-semibold text-gray-600 mb-6">
+                You completed the calendar!
+            </p>
+            <button id="modal-close-btn" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-transform active:scale-95 text-lg">
+                🌟 Continue Exploring
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Seasonal Themes Config
+        const SEASONAL_THEMES = {
+            0: { // January
+                name: "January",
+                title: "Winter Wonderland",
+                bgClass: "bg-slate-100 text-slate-800",
+                headerBg: "bg-gradient-to-r from-cyan-600 via-sky-500 to-blue-600 text-white",
+                slotStyle: "border-sky-200 bg-sky-50/30 hover:border-sky-400",
+                tileBg: "bg-sky-500 text-white shadow-sky-200",
+                decorLeft: "❄️", decorRight: "☃️", sticker: "❄️",
+                tagline: "Brrr! Cold days and snowy winter fun!"
+            },
+            1: { // February
+                name: "February",
+                title: "Hearts & Winter Cheer",
+                bgClass: "bg-pink-50 text-pink-900",
+                headerBg: "bg-gradient-to-r from-pink-500 via-rose-500 to-red-400 text-white",
+                slotStyle: "border-pink-200 bg-pink-50/30 hover:border-pink-400",
+                tileBg: "bg-rose-500 text-white shadow-pink-200",
+                decorLeft: "💖", decorRight: "🐧", sticker: "💌",
+                tagline: "Spread kindness and sweet hearts!"
+            },
+            2: { // March
+                name: "March",
+                title: "Spring & Clovers",
+                bgClass: "bg-emerald-50 text-emerald-900",
+                headerBg: "bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 text-white",
+                slotStyle: "border-emerald-200 bg-emerald-50/30 hover:border-emerald-400",
+                tileBg: "bg-emerald-500 text-white shadow-emerald-200",
+                decorLeft: "☘️", decorRight: "🌈", sticker: "🍀",
+                tagline: "Spring is springing all around!"
+            },
+            3: { // April
+                name: "April",
+                title: "Spring Showers & Blooms",
+                bgClass: "bg-sky-50 text-sky-900",
+                headerBg: "bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 text-white",
+                slotStyle: "border-sky-200 bg-sky-50/30 hover:border-sky-400",
+                tileBg: "bg-blue-500 text-white shadow-blue-200",
+                decorLeft: "🌧️", decorRight: "🌱", sticker: "🐣",
+                tagline: "April showers bring bright spring flowers!"
+            },
+            4: { // May
+                name: "May",
+                title: "Bright Spring Flowers",
+                bgClass: "bg-purple-50 text-purple-900",
+                headerBg: "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-400 text-white",
+                slotStyle: "border-purple-200 bg-purple-50/30 hover:border-purple-400",
+                tileBg: "bg-purple-500 text-white shadow-purple-200",
+                decorLeft: "🌸", decorRight: "🦋", sticker: "🌺",
+                tagline: "Flowers blooming, butterflies zooming!"
+            },
+            5: { // June
+                name: "June",
+                title: "Sunny Summer Days",
+                bgClass: "bg-amber-50 text-amber-900",
+                headerBg: "bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 text-white",
+                slotStyle: "border-amber-200 bg-amber-50/30 hover:border-amber-400",
+                tileBg: "bg-amber-500 text-white shadow-amber-200",
+                decorLeft: "☀️", decorRight: "🏖️", sticker: "🍦",
+                tagline: "Welcome summer sun and outdoor play!"
+            },
+            6: { // July
+                name: "July",
+                title: "Mid-Summer Sunshine",
+                bgClass: "bg-blue-50 text-blue-900",
+                headerBg: "bg-gradient-to-r from-red-500 via-blue-500 to-indigo-600 text-white",
+                slotStyle: "border-blue-200 bg-blue-50/30 hover:border-blue-400",
+                tileBg: "bg-indigo-500 text-white shadow-indigo-200",
+                decorLeft: "🍉", decorRight: "🎆", sticker: "🚀",
+                tagline: "Sweet watermelon and sunny picnics!"
+            },
+            7: { // August
+                name: "August",
+                title: "Late Summer Fun",
+                bgClass: "bg-orange-50 text-orange-900",
+                headerBg: "bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 text-white",
+                slotStyle: "border-orange-200 bg-orange-50/30 hover:border-orange-400",
+                tileBg: "bg-orange-500 text-white shadow-orange-200",
+                decorLeft: "🌻", decorRight: "🕶️", sticker: "🦀",
+                tagline: "Warm sunshine and bright sunflowers!"
+            },
+            8: { // September
+                name: "September",
+                title: "Back to School & Autumn",
+                bgClass: "bg-yellow-50 text-amber-900",
+                headerBg: "bg-gradient-to-r from-yellow-600 via-amber-600 to-red-500 text-white",
+                slotStyle: "border-yellow-200 bg-yellow-50/30 hover:border-yellow-400",
+                tileBg: "bg-amber-600 text-white shadow-amber-200",
+                decorLeft: "🍎", decorRight: "✏️", sticker: "📚",
+                tagline: "Learning, growing, and crisp fall breezes!"
+            },
+            9: { // October
+                name: "October",
+                title: "Spooky Fall & Halloween",
+                bgClass: "bg-amber-950/5 text-stone-800",
+                headerBg: "bg-gradient-to-r from-orange-600 via-amber-600 to-purple-800 text-white",
+                slotStyle: "border-orange-200 bg-orange-50/30 hover:border-orange-400",
+                tileBg: "bg-orange-500 text-white shadow-orange-200",
+                decorLeft: "🎃", decorRight: "👻", sticker: "🎃",
+                tagline: "Pumpkins, autumn leaves, and cozy treats!"
+            },
+            10: { // November
+                name: "November",
+                title: "Thanksgiving & Gratitude",
+                bgClass: "bg-stone-100 text-amber-950",
+                headerBg: "bg-gradient-to-r from-amber-700 via-orange-700 to-yellow-700 text-white",
+                slotStyle: "border-amber-300 bg-amber-50/30 hover:border-amber-500",
+                tileBg: "bg-amber-700 text-white shadow-amber-200",
+                decorLeft: "🦃", decorRight: "🍂", sticker: "🍁",
+                tagline: "Gathering together with thankful hearts!"
+            },
+            11: { // December
+                name: "December",
+                title: "Winter Holidays",
+                bgClass: "bg-sky-50 text-blue-950",
+                headerBg: "bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-700 text-white",
+                slotStyle: "border-indigo-200 bg-indigo-50/30 hover:border-indigo-400",
+                tileBg: "bg-indigo-600 text-white shadow-indigo-200",
+                decorLeft: "🎄", decorRight: "⛄", sticker: "🎁",
+                tagline: "Joyful celebrations and winter cheer!"
+            }
+        };
+
+        // Application State
+        let currentYear, currentMonth; // 0-indexed month
+        let placedDays = {}; // { dayNumber: true }
+        let soundMuted = false;
+        let activeTouchTile = null;
+        let touchOffsetX = 0, touchOffsetY = 0;
+        let originalTileParent = null;
+        let initialTileStyle = "";
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (soundMuted) return;
+            try {
+                initAudio();
+                const now = audioCtx.currentTime;
+
+                if (type === 'pop') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(480, now);
+                    osc.frequency.exponentialRampToValueAtTime(960, now + 0.12);
+                    
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'wrong') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(140, now + 0.2);
+
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'win') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        gain.gain.setValueAtTime(0.3, now + idx * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.3);
+
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.1);
+                        osc.stop(now + idx * 0.1 + 0.3);
+                    });
+                }
+            } catch (e) {
+                console.warn('Audio error:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            currentYear = today.getFullYear();
+            currentMonth = today.getMonth();
+
+            populateSelectors();
+            loadStateForCurrentMonth();
+            renderCalendar();
+
+            // Fullscreen Button Listener
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+            // Listen for Native Fullscreen State Changes
+            document.addEventListener('fullscreenchange', updateFullscreenUI);
+            document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+            document.addEventListener('mozfullscreenchange', updateFullscreenUI);
+            document.addEventListener('MSFullscreenChange', updateFullscreenUI);
+
+            // Month / Year Event Listeners
+            document.getElementById('month-select').addEventListener('change', (e) => {
+                currentMonth = parseInt(e.target.value, 10);
+                loadStateForCurrentMonth();
+                renderCalendar();
+            });
+
+            document.getElementById('year-select').addEventListener('change', (e) => {
+                currentYear = parseInt(e.target.value, 10);
+                loadStateForCurrentMonth();
+                renderCalendar();
+            });
+
+            document.getElementById('prev-month-btn').addEventListener('click', () => {
+                changeMonth(-1);
+            });
+
+            document.getElementById('next-month-btn').addEventListener('click', () => {
+                changeMonth(1);
+            });
+
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                if (confirm(`Reset the calendar numbers for ${SEASONAL_THEMES[currentMonth].name}?`)) {
+                    placedDays = {};
+                    saveStateForCurrentMonth();
+                    renderCalendar();
+                    playSound('pop');
+                }
+            });
+
+            document.getElementById('shuffle-btn').addEventListener('click', () => {
+                shuffleBankTiles();
+                playSound('pop');
+            });
+
+            document.getElementById('sound-btn').addEventListener('click', (e) => {
+                soundMuted = !soundMuted;
+                e.target.textContent = soundMuted ? '🔇' : '🔊';
+            });
+
+            document.getElementById('modal-close-btn').addEventListener('click', hideCompletionModal);
+        });
+
+        function toggleFullscreen() {
+            const doc = document;
+            const docEl = document.documentElement;
+
+            const isFullscreen = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+
+            if (!isFullscreen) {
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen();
+                } else if (docEl.webkitRequestFullscreen) { // Safari & Chrome
+                    docEl.webkitRequestFullscreen();
+                } else if (docEl.mozRequestFullScreen) { // Firefox
+                    docEl.mozRequestFullScreen();
+                } else if (docEl.msRequestFullscreen) { // IE/Edge
+                    docEl.msRequestFullscreen();
+                }
+            } else {
+                if (doc.exitFullscreen) {
+                    doc.exitFullscreen();
+                } else if (doc.webkitExitFullscreen) {
+                    doc.webkitExitFullscreen();
+                } else if (doc.mozCancelFullScreen) {
+                    doc.mozCancelFullScreen();
+                } else if (doc.msExitFullscreen) {
+                    doc.msExitFullscreen();
+                }
+            }
+        }
+
+        function updateFullscreenUI() {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            const btnText = document.getElementById('fullscreen-btn-text');
+            const btn = document.getElementById('fullscreen-btn');
+
+            if (isFullscreen) {
+                btnText.textContent = "Exit Fullscreen";
+                btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                btn.classList.add('bg-stone-700', 'hover:bg-stone-800');
+            } else {
+                btnText.textContent = "Fullscreen";
+                btn.classList.remove('bg-stone-700', 'hover:bg-stone-800');
+                btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+            }
+        }
+
+        function changeMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            
+            document.getElementById('month-select').value = currentMonth;
+            document.getElementById('year-select').value = currentYear;
+
+            loadStateForCurrentMonth();
+            renderCalendar();
+            playSound('pop');
+        }
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function getFirstDayOfWeek(year, month) {
+            return new Date(year, month, 1).getDay();
+        }
+
+        function populateSelectors() {
+            const monthSelect = document.getElementById('month-select');
+            const yearSelect = document.getElementById('year-select');
+
+            monthSelect.innerHTML = '';
+            for (let i = 0; i < 12; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = SEASONAL_THEMES[i].name;
+                if (i === currentMonth) opt.selected = true;
+                monthSelect.appendChild(opt);
+            }
+
+            yearSelect.innerHTML = '';
+            for (let y = currentYear - 3; y <= currentYear + 3; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                yearSelect.appendChild(opt);
+            }
+        }
+
+        function renderCalendar() {
+            const theme = SEASONAL_THEMES[currentMonth];
+            const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+            const startDayIndex = getFirstDayOfWeek(currentYear, currentMonth);
+
+            // 1. Seasonal Theme Styling
+            document.body.className = `${theme.bgClass} min-h-screen flex flex-col transition-colors duration-500 pb-12 select-none overflow-x-hidden`;
+            
+            const headerCard = document.getElementById('calendar-header-card');
+            headerCard.className = `rounded-3xl p-4 md:p-6 text-center shadow-lg transition-all duration-500 relative overflow-hidden border-2 border-white/60 ${theme.headerBg}`;
+            
+            document.getElementById('calendar-month-title').textContent = `${theme.name} ${currentYear}`;
+            document.getElementById('theme-tagline').textContent = theme.tagline;
+            document.getElementById('theme-badge-icon').textContent = theme.sticker;
+            document.getElementById('header-decor-left').textContent = theme.decorLeft;
+            document.getElementById('header-decor-right').textContent = theme.decorRight;
+
+            // 2. Render Calendar Grid Slots
+            const gridContainer = document.getElementById('calendar-days-grid');
+            gridContainer.innerHTML = '';
+
+            // Empty padding cells before month starts
+            for (let i = 0; i < startDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = "rounded-2xl bg-black/5 border border-transparent min-h-[50px] sm:min-h-[70px]";
+                gridContainer.appendChild(emptyCell);
+            }
+
+            // CLEAN, BLANK Drop Slots (No numbers displayed inside)
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isPlaced = !!placedDays[day];
+
+                const slot = document.createElement('div');
+                slot.className = `drop-slot relative rounded-2xl border-2 border-dashed flex flex-col items-center justify-center min-h-[55px] sm:min-h-[75px] p-1 transition-all ${theme.slotStyle}`;
+                slot.dataset.day = day;
+
+                // Drag & Drop Event Listeners
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('dragleave', handleDragLeave);
+                slot.addEventListener('drop', handleDrop);
+
+                // If already placed, stick the tile into place!
+                if (isPlaced) {
+                    const placedTile = createPlacedTileElement(day, theme);
+                    slot.appendChild(placedTile);
+                }
+
+                gridContainer.appendChild(slot);
+            }
+
+            // 3. Render Draggable Bank for Remaining Numbers (DEFAULT SHUFFLED)
+            renderNumberBank(daysInMonth, theme);
+
+            // 4. Update Progress Bar
+            updateProgress(daysInMonth);
+        }
+
+        // Fisher-Yates Random Shuffle Utility
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function renderNumberBank(daysInMonth, theme) {
+            const bankContainer = document.getElementById('number-bank');
+            bankContainer.innerHTML = '';
+
+            let remainingNumbers = [];
+            for (let d = 1; d <= daysInMonth; d++) {
+                if (!placedDays[d]) {
+                    remainingNumbers.push(d);
+                }
+            }
+
+            if (remainingNumbers.length === 0) {
+                bankContainer.innerHTML = `<div class="text-emerald-600 font-bold text-center py-2 text-lg animate-pop">🎉 All numbers placed for ${SEASONAL_THEMES[currentMonth].name}!</div>`;
+                return;
+            }
+
+            // ALWAYS DEFAULT TO SHUFFLED ORDER FOR STUDENTS
+            remainingNumbers = shuffleArray(remainingNumbers);
+
+            remainingNumbers.forEach(day => {
+                const tile = createDraggableTileElement(day, theme);
+                bankContainer.appendChild(tile);
+            });
+        }
+
+        function createDraggableTileElement(day, theme) {
+            const tile = document.createElement('div');
+            tile.className = `number-tile flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 text-xl sm:text-2xl font-black rounded-2xl shadow-md border-2 border-white/70 transition-transform active:scale-105 ${theme.tileBg}`;
+            tile.textContent = day;
+            tile.draggable = true;
+            tile.dataset.day = day;
+
+            // Mouse Drag Events
+            tile.addEventListener('dragstart', handleDragStart);
+            tile.addEventListener('dragend', handleDragEnd);
+
+            // Touch Events (iPad/Smartboard/Touchscreens)
+            tile.addEventListener('touchstart', handleTouchStart, { passive: false });
+            tile.addEventListener('touchmove', handleTouchMove, { passive: false });
+            tile.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+            return tile;
+        }
+
+        function createPlacedTileElement(day, theme) {
+            const tile = document.createElement('div');
+            tile.className = `w-full h-full flex flex-col items-center justify-center rounded-xl font-black text-lg sm:text-2xl shadow-sm z-10 animate-pop ${theme.tileBg} relative overflow-hidden cursor-pointer`;
+            
+            tile.innerHTML = `
+                <span class="leading-none">${day}</span>
+                <span class="text-xs sm:text-base leading-none mt-0.5 opacity-90">${theme.sticker}</span>
+            `;
+
+            tile.title = "Click/Tap to return number to bank";
+            tile.addEventListener('click', () => {
+                delete placedDays[day];
+                saveStateForCurrentMonth();
+                playSound('pop');
+                renderCalendar();
+            });
+
+            return tile;
+        }
+
+        function shuffleBankTiles() {
+            const bankContainer = document.getElementById('number-bank');
+            const tiles = Array.from(bankContainer.children).filter(el => el.classList.contains('number-tile'));
+            if (tiles.length <= 1) return;
+
+            // Re-shuffle existing tiles in DOM
+            const shuffledTiles = shuffleArray(tiles);
+            shuffledTiles.forEach(tile => bankContainer.appendChild(tile));
+        }
+
+        let draggedDay = null;
+
+        function handleDragStart(e) {
+            initAudio();
+            draggedDay = parseInt(e.target.dataset.day, 10);
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', draggedDay);
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedDay = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over', 'bg-amber-100/60');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over', 'bg-amber-100/60');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const slot = e.currentTarget;
+            slot.classList.remove('drag-over', 'bg-amber-100/60');
+
+            const targetDay = parseInt(slot.dataset.day, 10);
+            const numberToPlace = draggedDay || parseInt(e.dataTransfer.getData('text/plain'), 10);
+
+            validateAndPlaceTile(numberToPlace, targetDay, slot);
+        }
+
+        function handleTouchStart(e) {
+            initAudio();
+            const touch = e.touches[0];
+            activeTouchTile = e.currentTarget;
+            draggedDay = parseInt(activeTouchTile.dataset.day, 10);
+
+            const rect = activeTouchTile.getBoundingClientRect();
+            touchOffsetX = touch.clientX - rect.left;
+            touchOffsetY = touch.clientY - rect.top;
+
+            originalTileParent = activeTouchTile.parentNode;
+            initialTileStyle = activeTouchTile.style.cssText;
+
+            activeTouchTile.style.position = 'fixed';
+            activeTouchTile.style.zIndex = '1000';
+            activeTouchTile.style.width = `${rect.width}px`;
+            activeTouchTile.style.height = `${rect.height}px`;
+            activeTouchTile.style.left = `${touch.clientX - touchOffsetX}px`;
+            activeTouchTile.style.top = `${touch.clientY - touchOffsetY}px`;
+            activeTouchTile.classList.add('shadow-2xl', 'scale-110');
+
+            e.preventDefault();
+        }
+
+        function handleTouchMove(e) {
+            if (!activeTouchTile) return;
+            const touch = e.touches[0];
+
+            activeTouchTile.style.left = `${touch.clientX - touchOffsetX}px`;
+            activeTouchTile.style.top = `${touch.clientY - touchOffsetY}px`;
+
+            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropSlot = elementUnder ? elementUnder.closest('.drop-slot') : null;
+
+            document.querySelectorAll('.drop-slot').forEach(s => s.classList.remove('drag-over', 'bg-amber-100/60'));
+            if (dropSlot) {
+                dropSlot.classList.add('drag-over', 'bg-amber-100/60');
+            }
+
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+            if (!activeTouchTile) return;
+
+            const touch = e.changedTouches[0];
+            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropSlot = elementUnder ? elementUnder.closest('.drop-slot') : null;
+
+            document.querySelectorAll('.drop-slot').forEach(s => s.classList.remove('drag-over', 'bg-amber-100/60'));
+
+            activeTouchTile.style.cssText = initialTileStyle;
+            activeTouchTile.classList.remove('shadow-2xl', 'scale-110');
+
+            if (dropSlot) {
+                const targetDay = parseInt(dropSlot.dataset.day, 10);
+                validateAndPlaceTile(draggedDay, targetDay, dropSlot);
+            } else {
+                activeTouchTile.classList.add('animate-wobble');
+                setTimeout(() => activeTouchTile?.classList.remove('animate-wobble'), 400);
+            }
+
+            activeTouchTile = null;
+            draggedDay = null;
+            e.preventDefault();
+        }
+
+        function validateAndPlaceTile(tileDay, slotDay, slotElement) {
+            if (!tileDay || !slotDay) return;
+
+            if (tileDay === slotDay) {
+                // Correct match
+                placedDays[tileDay] = true;
+                saveStateForCurrentMonth();
+                playSound('pop');
+
+                renderCalendar();
+
+                const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+                if (Object.keys(placedDays).length === daysInMonth) {
+                    triggerCompletion();
+                }
+            } else {
+                // Soft error feedback
+                playSound('wrong');
+                slotElement.classList.add('animate-wobble', 'border-red-400', 'bg-red-50');
+                
+                setTimeout(() => {
+                    slotElement.classList.remove('animate-wobble', 'border-red-400', 'bg-red-50');
+                }, 400);
+            }
+        }
+
+        function updateProgress(daysInMonth) {
+            const placedCount = Object.keys(placedDays).length;
+            const percent = Math.round((placedCount / daysInMonth) * 100);
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+        }
+
+        function getStorageKey() {
+            return `montessori_cal_${currentYear}_${currentMonth}`;
+        }
+
+        function saveStateForCurrentMonth() {
+            try {
+                localStorage.setItem(getStorageKey(), JSON.stringify(placedDays));
+            } catch (e) {
+                console.warn('Unable to save to localStorage:', e);
+            }
+        }
+
+        function loadStateForCurrentMonth() {
+            try {
+                const saved = localStorage.getItem(getStorageKey());
+                if (saved) {
+                    placedDays = JSON.parse(saved);
+                } else {
+                    placedDays = {};
+                }
+            } catch (e) {
+                placedDays = {};
+            }
+        }
+
+        function triggerCompletion() {
+            playSound('win');
+
+            const theme = SEASONAL_THEMES[currentMonth];
+            document.getElementById('modal-icon').textContent = theme.sticker;
+            document.getElementById('modal-title').textContent = `Awesome job!`;
+            document.getElementById('modal-msg').textContent = `You completed the whole calendar for ${theme.name} ${currentYear}!`;
+
+            const modal = document.getElementById('completion-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('#completion-card').classList.remove('scale-90');
+            modal.querySelector('#completion-card').classList.add('scale-100');
+
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 130,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function hideCompletionModal() {
+            const modal = document.getElementById('completion-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('#completion-card').classList.remove('scale-100');
+            modal.querySelector('#completion-card').classList.add('scale-90');
+        }
+    </script>
+</body>
+</html>
