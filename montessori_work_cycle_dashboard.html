@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montessori Work Cycle Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Nunito for highly legible, soft child-friendly typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for Celebration Effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Monthly Theme Styles */
+        /* October - Halloween Spooky Cute */
+        .theme-october {
+            --bg-gradient: linear-gradient(135deg, #1e102d 0%, #2a1b40 50%, #150d21 100%);
+            --card-bg: rgba(43, 27, 61, 0.85);
+            --card-border: #8b5cf6;
+            --accent-color: #f97316;
+            --accent-hover: #ea580c;
+            --text-main: #f3e8ff;
+            --header-bg: rgba(30, 16, 45, 0.9);
+            --math-color: #f97316;
+            --lang-color: #a855f7;
+            --partner-bg: rgba(59, 38, 84, 0.7);
+        }
+
+        /* November - Thanksgiving / Autumn */
+        .theme-november {
+            --bg-gradient: linear-gradient(135deg, #2c1810 0%, #432315 50%, #1d0f0a 100%);
+            --card-bg: rgba(67, 35, 21, 0.85);
+            --card-border: #d97706;
+            --accent-color: #f59e0b;
+            --accent-hover: #d97706;
+            --text-main: #fef3c7;
+            --header-bg: rgba(44, 24, 16, 0.9);
+            --math-color: #ea580c;
+            --lang-color: #d97706;
+            --partner-bg: rgba(85, 46, 28, 0.7);
+        }
+
+        /* December - Winter Wonderland */
+        .theme-december {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            --card-bg: rgba(30, 41, 59, 0.85);
+            --card-border: #38bdf8;
+            --accent-color: #0284c7;
+            --accent-hover: #0369a1;
+            --text-main: #e0f2fe;
+            --header-bg: rgba(15, 23, 42, 0.9);
+            --math-color: #38bdf8;
+            --lang-color: #818cf8;
+            --partner-bg: rgba(47, 63, 86, 0.7);
+        }
+
+        /* Spring / General Vibrant Theme (Fallback/Other months) */
+        .theme-spring {
+            --bg-gradient: linear-gradient(135deg, #064e3b 0%, #047857 50%, #065f46 100%);
+            --card-bg: rgba(6, 78, 59, 0.85);
+            --card-border: #34d399;
+            --accent-color: #10b981;
+            --accent-hover: #059669;
+            --text-main: #ecfdf5;
+            --header-bg: rgba(4, 120, 87, 0.9);
+            --math-color: #34d399;
+            --lang-color: #a7f3d0;
+            --partner-bg: rgba(16, 185, 129, 0.2);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .custom-card {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            backdrop-filter: blur(8px);
+        }
+
+        .check-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .check-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Custom scrollbar for desktop/smartboard smooth scroll */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.03); }
+        }
+
+        .glow-effect {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .bounce-icon {
+            animation: bounce-gentle 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="theme-october transition-colors duration-500 h-screen w-screen flex flex-col p-2 md:p-4 overflow-hidden select-none">
+
+    <!-- TOP HEADER BAR -->
+    <header class="custom-card rounded-2xl p-3 md:p-4 mb-3 shadow-2xl flex flex-wrap justify-between items-center gap-2 md:gap-4 relative z-10 border-b-4 flex-shrink-0">
+        <!-- Title & Theme Indicator -->
+        <div class="flex items-center space-x-3">
+            <div id="theme-icon-container" class="text-3xl md:text-4xl text-orange-400 bounce-icon">
+                <i class="fa-solid fa-jack-o-lantern" id="theme-icon"></i>
+            </div>
+            <div>
+                <h1 class="text-xl md:text-3xl font-extrabold tracking-wide text-white drop-shadow-md flex items-center gap-2">
+                    <span>Montessori Work Cycle</span>
+                    <span id="theme-badge" class="text-xs bg-orange-500/30 text-orange-300 border border-orange-400/50 px-2.5 py-0.5 rounded-full uppercase tracking-widest font-bold hidden sm:inline-block">Halloween Mode</span>
+                </h1>
+                <p class="text-xs md:text-sm opacity-80 font-medium">Classroom Dashboard</p>
+            </div>
+        </div>
+
+        <!-- Live Digital Clock & Date -->
+        <div class="flex flex-col items-center sm:items-end justify-center bg-black/30 px-4 py-1.5 rounded-xl border border-white/10 shadow-inner">
+            <div id="clock" class="text-2xl md:text-4xl font-black tracking-wider text-amber-300 font-mono drop-shadow-lg">
+                00:00 AM
+            </div>
+            <div id="date-display" class="text-xs text-purple-200 font-semibold tracking-wide">
+                Thursday, October 1, 2026
+            </div>
+        </div>
+
+        <!-- Actions & Settings Controls -->
+        <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+            <!-- Fullscreen Toggle Button -->
+            <button id="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen Mode" class="bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-400/30 p-2.5 rounded-xl text-lg shadow-md transition-all active:scale-95 flex items-center justify-center min-w-[42px] min-h-[42px]">
+                <i class="fa-solid fa-expand" id="fullscreen-icon"></i>
+            </button>
+
+            <!-- Audio Toggle -->
+            <button id="sound-btn" onclick="toggleSound()" title="Toggle Sound Effects" class="bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-400/30 p-2.5 rounded-xl text-lg shadow-md transition-all active:scale-95 flex items-center justify-center min-w-[42px] min-h-[42px]">
+                <i class="fa-solid fa-volume-high text-emerald-400" id="sound-icon"></i>
+            </button>
+
+            <!-- Theme Selector Dropdown -->
+            <select id="theme-select" onchange="changeTheme(this.value)" class="bg-black/40 text-white font-bold border border-white/20 rounded-xl px-2.5 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer shadow-md">
+                <option value="october" selected>🎃 October (Halloween)</option>
+                <option value="november">🦃 November (Autumn)</option>
+                <option value="december">❄️ December (Winter)</option>
+                <option value="spring">🌱 Spring / General</option>
+            </select>
+
+            <!-- Daily Reset Button -->
+            <button onclick="openResetModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-2 rounded-xl shadow-lg border border-rose-400/40 text-xs md:text-sm flex items-center gap-1.5 transition-all active:scale-95">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span class="hidden md:inline">Reset Day</span>
+            </button>
+
+            <!-- Manage Students Button -->
+            <button onclick="openStudentsModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-xl shadow-lg border border-indigo-400/40 text-xs md:text-sm flex items-center gap-1.5 transition-all active:scale-95">
+                <i class="fa-solid fa-users-gear"></i>
+                <span class="hidden md:inline">Edit Kids</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT LAYOUT GRID -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4 flex-1 min-h-0 overflow-hidden">
+        
+        <!-- MAIN WORK CYCLE CHECK-OFF AREA (8 Cols on LG) -->
+        <section class="lg:col-span-8 custom-card rounded-2xl p-3 md:p-4 shadow-2xl flex flex-col h-full min-h-0 overflow-hidden">
+            
+            <!-- Table Header / Title Row -->
+            <div class="flex items-center justify-between border-b-2 border-white/10 pb-2 mb-2 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl md:text-2xl">📋</span>
+                    <h2 class="text-lg md:text-xl font-bold tracking-wide">Work Cycle Progress</h2>
+                </div>
+                
+                <!-- Quick Counters -->
+                <div class="flex gap-2 text-xs font-semibold">
+                    <div class="bg-orange-500/20 border border-orange-500/40 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                        <span>📐 Math:</span>
+                        <span id="math-counter" class="text-orange-300 font-bold text-sm">0/17</span>
+                    </div>
+                    <div class="bg-purple-500/20 border border-purple-500/40 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                        <span>📚 Language:</span>
+                        <span id="lang-counter" class="text-purple-300 font-bold text-sm">0/17</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Row for Column Titles -->
+            <div class="grid grid-cols-12 gap-2 md:gap-4 mb-2 font-bold text-xs md:text-sm text-center opacity-90 px-2 flex-shrink-0">
+                <div class="col-span-4 text-left pl-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-child text-amber-400"></i> Student
+                </div>
+                <div class="col-span-4 bg-orange-500/20 py-1 rounded-lg border border-orange-500/30 text-orange-200 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-calculator"></i> Math Work
+                </div>
+                <div class="col-span-4 bg-purple-500/20 py-1 rounded-lg border border-purple-500/30 text-purple-200 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-book-open"></i> Language Work
+                </div>
+            </div>
+
+            <!-- Student Scrollable List Container -->
+            <div id="student-grid" class="flex-1 min-h-0 overflow-y-auto space-y-1 md:space-y-1.5 pr-1 flex flex-col justify-between">
+                <!-- Dynamically generated rows via JS -->
+            </div>
+        </section>
+
+        <!-- RIGHT SIDEBAR: WEEKLY LINE PARTNERS (4 Cols on LG) -->
+        <aside class="lg:col-span-4 custom-card rounded-2xl p-3 md:p-4 shadow-2xl flex flex-col h-full min-h-0 overflow-hidden border-2 border-amber-500/30">
+            <div class="flex items-center justify-between border-b-2 border-white/10 pb-2 mb-2 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl md:text-2xl">👫</span>
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold tracking-wide">Weekly Line Partners</h2>
+                        <p class="text-xs opacity-75 font-medium">Auto-assigned every Monday</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Indicator for Week -->
+            <div class="mb-2 text-xs font-semibold bg-black/30 border border-white/10 px-2.5 py-1.5 rounded-lg flex items-center justify-between flex-shrink-0">
+                <span id="partner-week-date" class="text-amber-300">Week of: --</span>
+                <span class="text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Assigned</span>
+            </div>
+
+            <!-- Line Partners List -->
+            <div id="partner-list" class="space-y-1 md:space-y-1.5 overflow-y-auto pr-1 flex-1 min-h-0 flex flex-col justify-between">
+                <!-- Dynamically generated line partner cards -->
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- MODAL: RESET CONFIRMATION -->
+    <div id="reset-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-slate-900 border-2 border-rose-500 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center space-y-5 animate-in fade-in zoom-in duration-200">
+            <div class="text-6xl text-rose-500 bounce-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-white">Reset Daily Checks?</h3>
+            <p class="text-slate-300 text-sm md:text-base">This will uncheck Math and Language for all students for today's work cycle.</p>
+            <div class="flex gap-3 justify-center pt-2">
+                <button onclick="closeResetModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl border border-slate-700 transition-all">
+                    Cancel
+                </button>
+                <button onclick="confirmResetDaily()" class="w-1/2 bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg border border-rose-500 transition-all active:scale-95">
+                    Yes, Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MANAGE STUDENTS -->
+    <div id="students-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-slate-900 border-2 border-indigo-500 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-indigo-500/30 pb-3">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-indigo-400"></i> Manage Student Roster
+                </h3>
+                <button onclick="closeStudentsModal()" class="text-slate-400 hover:text-white text-2xl font-bold p-1">&times;</button>
+            </div>
+            
+            <!-- Add New Student Input -->
+            <div class="flex gap-2">
+                <input type="text" id="new-student-input" placeholder="Enter student name..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button onclick="addStudent()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl border border-indigo-500 flex items-center gap-1 transition-all active:scale-95">
+                    <i class="fa-solid fa-plus"></i> Add
+                </button>
+            </div>
+
+            <!-- List of Editable Students -->
+            <div id="edit-student-list" class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[350px]">
+                <!-- Student list items -->
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                <button onclick="resetToDefaultStudents()" class="text-xs text-slate-400 hover:text-amber-400 underline">
+                    Restore Default 17 Students
+                </button>
+                <button onclick="closeStudentsModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-xl border border-indigo-500">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default 17 Classroom Students
+        const DEFAULT_STUDENTS = [
+            "Abigail", "Ale", "Brady",
+            "Conor", "Evie", "Hartford",
+            "Jett", "Julia", "Leo",
+            "Liam", "Maddy Grace", "Miles",
+            "Palmer", "Preston G", "Preston T",
+            "Reagan", "Wildes"
+        ];
+
+        // Seasonal Theme configurations
+        const THEME_CONFIGS = {
+            october: {
+                className: 'theme-october',
+                icon: 'fa-jack-o-lantern',
+                badgeText: '🎃 Halloween Mode',
+                stickers: ['🎃', '👻', '🦇', '🕷️️', '🍬', '🕸️']
+            },
+            november: {
+                className: 'theme-november',
+                icon: 'fa-turkey',
+                badgeText: '🍂 Autumn Mode',
+                stickers: ['🍁', '🍂', '🦃', '🌽', '🍎', '🥧']
+            },
+            december: {
+                className: 'theme-december',
+                icon: 'fa-snowflake',
+                badgeText: '❄️ Winter Mode',
+                stickers: ['❄️', '☃️', '🎄', '🎁', '⭐', '🧤']
+            },
+            spring: {
+                className: 'theme-spring',
+                icon: 'fa-seedling',
+                badgeText: '🌱 Spring Mode',
+                stickers: ['🌸', '🌱', '🦋', '🐝', '🌈', '☀️']
+            }
+        };
+
+        // Application State Variables
+        let students = [];
+        let dailyProgress = {}; // { studentName: { math: boolean, lang: boolean } }
+        let linePartners = [];
+        let partnerWeekDate = '';
+        let currentTheme = 'october';
+        let soundEnabled = true;
+
+        // Sound Effects generator using Web Audio API (No external asset dependency)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                if (type === 'check') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'uncheck') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(330, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.12);
+                } else if (type === 'fanfare') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const noteOsc = audioCtx.createOscillator();
+                        const noteGain = audioCtx.createGain();
+                        noteOsc.connect(noteGain);
+                        noteGain.connect(audioCtx.destination);
+                        noteOsc.type = 'sine';
+                        noteOsc.frequency.value = freq;
+                        const startTime = audioCtx.currentTime + idx * 0.08;
+                        noteGain.gain.setValueAtTime(0.25, startTime);
+                        noteGain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+                        noteOsc.start(startTime);
+                        noteOsc.stop(startTime + 0.2);
+                    });
+                }
+            } catch (e) {
+                console.warn('Audio play restricted:', e);
+            }
+        }
+
+        // Digital Clock and Date Display (Hours and Minutes only)
+        function initClock() {
+            const updateClock = () => {
+                const now = new Date();
+                
+                // Format Time: 12-hour format with AM/PM (HH:MM AM/PM)
+                let hours = now.getHours();
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // Hour '0' should be '12'
+                const formattedHours = String(hours).padStart(2, '0');
+
+                document.getElementById('clock').innerText = `${formattedHours}:${minutes} ${ampm}`;
+
+                // Format Date
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('date-display').innerText = now.toLocaleDateString('en-US', options);
+            };
+
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // Cross-Browser Fullscreen Toggle
+        function toggleFullscreen() {
+            const fsBtnIcon = document.getElementById('fullscreen-icon');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                const docEl = document.documentElement;
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen();
+                } else if (docEl.webkitRequestFullscreen) { /* Safari / iOS / Webkit */
+                    docEl.webkitRequestFullscreen();
+                } else if (docEl.msRequestFullscreen) { /* IE / Edge */
+                    docEl.msRequestFullscreen();
+                }
+                if (fsBtnIcon) fsBtnIcon.className = 'fa-solid fa-compress';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                if (fsBtnIcon) fsBtnIcon.className = 'fa-solid fa-expand';
+            }
+        }
+
+        // Listen for fullscreen change events to update icon automatically
+        ['fullscreenchange', 'webkitfullscreenchange', 'msfullscreenchange'].forEach(eventType => {
+            document.addEventListener(eventType, () => {
+                const fsBtnIcon = document.getElementById('fullscreen-icon');
+                if (fsBtnIcon) {
+                    if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                        fsBtnIcon.className = 'fa-solid fa-compress';
+                    } else {
+                        fsBtnIcon.className = 'fa-solid fa-expand';
+                    }
+                }
+            });
+        });
+
+        function loadLocalStorageData() {
+            // Load Students
+            const storedStudents = localStorage.getItem('montessori_students');
+            if (storedStudents) {
+                students = JSON.parse(storedStudents);
+            } else {
+                students = [...DEFAULT_STUDENTS];
+                saveStudents();
+            }
+
+            // Load Daily Progress
+            const storedProgress = localStorage.getItem('montessori_daily_progress');
+            if (storedProgress) {
+                dailyProgress = JSON.parse(storedProgress);
+            } else {
+                dailyProgress = {};
+            }
+
+            // Ensure all current students exist in daily progress
+            students.forEach(name => {
+                if (!dailyProgress[name]) {
+                    dailyProgress[name] = { math: false, lang: false };
+                }
+            });
+
+            // Load Sound Settings
+            const storedSound = localStorage.getItem('montessori_sound');
+            if (storedSound !== null) {
+                soundEnabled = JSON.parse(storedSound);
+                updateSoundIcon();
+            }
+        }
+
+        function saveStudents() {
+            localStorage.setItem('montessori_students', JSON.stringify(students));
+        }
+
+        function saveProgress() {
+            localStorage.setItem('montessori_daily_progress', JSON.stringify(dailyProgress));
+        }
+
+        // Auto-detect month for seasonal theme if not manually overridden
+        function autoDetectSeasonalTheme() {
+            const month = new Date().getMonth(); // 0 = Jan, 9 = Oct, 10 = Nov, 11 = Dec
+            if (month === 9) {
+                currentTheme = 'october';
+            } else if (month === 10) {
+                currentTheme = 'november';
+            } else if (month === 11 || month === 0 || month === 1) {
+                currentTheme = 'december';
+            } else {
+                currentTheme = 'spring';
+            }
+
+            const storedTheme = localStorage.getItem('montessori_theme');
+            if (storedTheme && THEME_CONFIGS[storedTheme]) {
+                currentTheme = storedTheme;
+            }
+
+            document.getElementById('theme-select').value = currentTheme;
+            applyTheme(currentTheme);
+        }
+
+        function changeTheme(themeName) {
+            currentTheme = themeName;
+            localStorage.setItem('montessori_theme', themeName);
+            applyTheme(themeName);
+            renderDashboard(); // re-render to update seasonal stickers
+        }
+
+        function applyTheme(themeName) {
+            const config = THEME_CONFIGS[themeName] || THEME_CONFIGS.october;
+            document.body.className = `${config.className} transition-colors duration-500 min-h-screen flex flex-col p-3 md:p-6 overflow-x-hidden`;
+            document.getElementById('theme-icon').className = `fa-solid ${config.icon}`;
+            document.getElementById('theme-badge').innerText = config.badgeText;
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('montessori_sound', JSON.stringify(soundEnabled));
+            updateSoundIcon();
+        }
+
+        function updateSoundIcon() {
+            const soundIcon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                soundIcon.className = 'fa-solid fa-volume-high text-emerald-400';
+            } else {
+                soundIcon.className = 'fa-solid fa-volume-xmark text-rose-400';
+            }
+        }
+
+        function renderDashboard() {
+            const grid = document.getElementById('student-grid');
+            grid.innerHTML = '';
+
+            let mathCount = 0;
+            let langCount = 0;
+            const themeStickers = THEME_CONFIGS[currentTheme].stickers;
+
+            students.forEach((name, index) => {
+                const prog = dailyProgress[name] || { math: false, lang: false };
+                if (prog.math) mathCount++;
+                if (prog.lang) langCount++;
+
+                // Pick a seasonal sticker consistently based on student index
+                const sticker = themeStickers[index % themeStickers.length];
+
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-12 gap-2 items-center bg-black/20 hover:bg-black/30 border border-white/10 rounded-xl px-2 py-1 md:py-1.5 transition-all flex-1 min-h-[30px]";
+
+                row.innerHTML = `
+                    <!-- Student Name -->
+                    <div class="col-span-4 flex items-center gap-2 pl-1">
+                        <span class="text-sm md:text-xl">${sticker}</span>
+                        <span class="font-bold text-xs md:text-base lg:text-lg truncate text-white" title="${name}">${name}</span>
+                    </div>
+
+                    <!-- Math Check Button -->
+                    <div class="col-span-4 flex justify-center">
+                        <button onclick="toggleCheck('${name}', 'math', event)" 
+                            class="check-btn w-full py-1 md:py-1.5 px-2 rounded-xl font-bold text-xs md:text-sm lg:text-base flex items-center justify-center gap-1.5 border shadow-sm ${
+                                prog.math 
+                                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-300 shadow-orange-500/30' 
+                                : 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border-slate-600/50'
+                            }">
+                            <i class="fa-solid ${prog.math ? 'fa-circle-check text-base text-amber-200' : 'fa-circle text-slate-500'}"></i>
+                            <span>${prog.math ? 'DONE!' : 'Math'}</span>
+                        </button>
+                    </div>
+
+                    <!-- Language Check Button -->
+                    <div class="col-span-4 flex justify-center">
+                        <button onclick="toggleCheck('${name}', 'lang', event)" 
+                            class="check-btn w-full py-1 md:py-1.5 px-2 rounded-xl font-bold text-xs md:text-sm lg:text-base flex items-center justify-center gap-1.5 border shadow-sm ${
+                                prog.lang 
+                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-300 shadow-purple-500/30' 
+                                : 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border-slate-600/50'
+                            }">
+                            <i class="fa-solid ${prog.lang ? 'fa-circle-check text-base text-purple-200' : 'fa-circle text-slate-500'}"></i>
+                            <span>${prog.lang ? 'DONE!' : 'Language'}</span>
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(row);
+            });
+
+            // Update Header Progress Counters
+            document.getElementById('math-counter').innerText = `${mathCount}/${students.length}`;
+            document.getElementById('lang-counter').innerText = `${langCount}/${students.length}`;
+        }
+
+        // Handle Smartboard Tap / Checkbox Toggle
+        function toggleCheck(studentName, subject, event) {
+            if (!dailyProgress[studentName]) {
+                dailyProgress[studentName] = { math: false, lang: false };
+            }
+
+            const currentState = dailyProgress[studentName][subject];
+            dailyProgress[studentName][subject] = !currentState;
+            saveProgress();
+
+            if (!currentState) {
+                // Trigger Check Effects
+                playSound('check');
+                triggerConfetti(event);
+
+                // Check if both math & language are now complete for the kid
+                const updated = dailyProgress[studentName];
+                if (updated.math && updated.lang) {
+                    setTimeout(() => playSound('fanfare'), 150);
+                }
+            } else {
+                playSound('uncheck');
+            }
+
+            renderDashboard();
+        }
+
+        // Particle confetti animation on Smartboard tap
+        function triggerConfetti(event) {
+            if (typeof confetti !== 'undefined') {
+                const rect = event.target.getBoundingClientRect();
+                const x = (rect.left + rect.width / 2) / window.innerWidth;
+                const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+                confetti({
+                    particleCount: 35,
+                    spread: 60,
+                    origin: { x: x, y: y },
+                    colors: ['#f97316', '#a855f7', '#38bdf8', '#fbbf24', '#34d399']
+                });
+            }
+        }
+
+        function getStartOfWeek(d) {
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+            return new Date(date.setDate(diff));
+        }
+
+        function checkAndAutoRotateWeeklyPartners() {
+            const today = new Date();
+            const mondayDate = getStartOfWeek(today).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            
+            const storedWeek = localStorage.getItem('montessori_partner_week');
+            const storedPartners = localStorage.getItem('montessori_line_partners');
+
+            if (storedWeek === mondayDate && storedPartners) {
+                partnerWeekDate = storedWeek;
+                linePartners = JSON.parse(storedPartners);
+            } else {
+                // It's a new week (or first time) -> generate new random pairings
+                partnerWeekDate = mondayDate;
+                shufflePartners(false);
+            }
+
+            document.getElementById('partner-week-date').innerText = `Week of: ${partnerWeekDate}`;
+        }
+
+        function shufflePartners(userTriggered = false) {
+            // Create a shuffled copy of current student list
+            let shuffled = [...students];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            // Pair students strictly in 2s (if odd number, last student is paired with teacher)
+            const pairs = [];
+            while (shuffled.length > 0) {
+                if (shuffled.length >= 2) {
+                    pairs.push([shuffled.pop(), shuffled.pop()]);
+                } else {
+                    pairs.push([shuffled.pop()]);
+                }
+            }
+
+            linePartners = pairs;
+
+            const today = new Date();
+            partnerWeekDate = getStartOfWeek(today).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            localStorage.setItem('montessori_partner_week', partnerWeekDate);
+            localStorage.setItem('montessori_line_partners', JSON.stringify(linePartners));
+
+            if (userTriggered) {
+                playSound('check');
+            }
+
+            renderLinePartners();
+        }
+
+        function renderLinePartners() {
+            const container = document.getElementById('partner-list');
+            container.innerHTML = '';
+
+            if (linePartners.length === 0) {
+                container.innerHTML = `<p class="text-center opacity-60 text-sm py-4">No partners assigned.</p>`;
+                return;
+            }
+
+            linePartners.forEach((group, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-black/30 border border-white/10 rounded-xl p-1.5 md:p-2 flex items-center justify-between shadow-sm hover:border-amber-400/40 transition-all flex-1 min-h-[30px]";
+
+                let namesHtml = '';
+                if (group.length === 2) {
+                    namesHtml = `
+                        <span class="font-bold text-white text-xs md:text-base">${group[0]}</span>
+                        <i class="fa-solid fa-handshake text-amber-400 text-xs"></i>
+                        <span class="font-bold text-white text-xs md:text-base">${group[1]}</span>
+                    `;
+                } else if (group.length === 1) {
+                    namesHtml = `
+                        <span class="font-bold text-white text-xs md:text-base">${group[0]}</span>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold text-xs flex items-center justify-center">${idx + 1}</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center gap-2 px-2">
+                        ${namesHtml}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Reset Modal Controls
+        function openResetModal() {
+            document.getElementById('reset-modal').classList.remove('hidden');
+            document.getElementById('reset-modal').classList.add('flex');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+            document.getElementById('reset-modal').classList.remove('flex');
+        }
+
+        function confirmResetDaily() {
+            students.forEach(name => {
+                dailyProgress[name] = { math: false, lang: false };
+            });
+            saveProgress();
+            renderDashboard();
+            closeResetModal();
+            playSound('uncheck');
+        }
+
+        // Student Roster Modal Controls
+        function openStudentsModal() {
+            renderEditStudentList();
+            document.getElementById('students-modal').classList.remove('hidden');
+            document.getElementById('students-modal').classList.add('flex');
+        }
+
+        function closeStudentsModal() {
+            document.getElementById('students-modal').classList.add('hidden');
+            document.getElementById('students-modal').classList.remove('flex');
+        }
+
+        function renderEditStudentList() {
+            const list = document.getElementById('edit-student-list');
+            list.innerHTML = '';
+
+            students.forEach((name, index) => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between bg-slate-800 p-2.5 rounded-xl border border-slate-700";
+                item.innerHTML = `
+                    <span class="font-bold text-white text-sm md:text-base">${name}</span>
+                    <button onclick="removeStudent(${index})" class="text-rose-400 hover:text-rose-300 p-1.5 rounded-lg hover:bg-rose-500/20 transition-all">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function addStudent() {
+            const input = document.getElementById('new-student-input');
+            const name = input.value.trim();
+            if (name && !students.includes(name)) {
+                students.push(name);
+                dailyProgress[name] = { math: false, lang: false };
+                saveStudents();
+                saveProgress();
+                shufflePartners(false);
+                renderDashboard();
+                renderEditStudentList();
+                input.value = '';
+            }
+        }
+
+        function removeStudent(index) {
+            const removed = students.splice(index, 1)[0];
+            delete dailyProgress[removed];
+            saveStudents();
+            saveProgress();
+            shufflePartners(false);
+            renderDashboard();
+            renderEditStudentList();
+        }
+
+        function resetToDefaultStudents() {
+            students = [...DEFAULT_STUDENTS];
+            dailyProgress = {};
+            students.forEach(name => {
+                dailyProgress[name] = { math: false, lang: false };
+            });
+            saveStudents();
+            saveProgress();
+            shufflePartners(false);
+            renderDashboard();
+            renderEditStudentList();
+        }
+
+        // Initialize dashboard on DOM Content Loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            loadLocalStorageData();
+            autoDetectSeasonalTheme();
+            checkAndAutoRotateWeeklyPartners();
+            renderDashboard();
+            renderLinePartners();
+            initClock();
+        });
+    </script>
+</body>
+</html>
