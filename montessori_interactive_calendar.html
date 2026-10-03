@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full overflow-hidden">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -20,13 +20,17 @@
         }
 
         html, body {
+            height: 100vh;
+            max-height: 100vh;
+            width: 100vw;
+            max-width: 100vw;
             touch-action: none !important;
             user-select: none !important;
             -webkit-user-select: none !important;
             -moz-user-select: none !important;
             -ms-user-select: none !important;
             overscroll-behavior: none;
-            overflow-x: hidden;
+            overflow: hidden !important;
             font-family: 'Fredoka', cursive, sans-serif;
         }
 
@@ -46,10 +50,10 @@
 
         /* Selected State for Tap-to-Place Mode */
         .number-tile.selected-tile {
-            transform: scale(1.12) translateY(-4px);
-            outline: 4px solid #f59e0b;
-            outline-offset: 3px;
-            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.6);
+            transform: scale(1.12) translateY(-2px);
+            outline: 3px solid #f59e0b;
+            outline-offset: 2px;
+            box-shadow: 0 8px 20px -3px rgba(245, 158, 11, 0.6);
             animation: pulseGlow 1.2s infinite ease-in-out alternate;
         }
 
@@ -76,155 +80,141 @@
         }
 
         .drop-slot.drag-over {
-            transform: scale(1.05);
+            transform: scale(1.04);
             border-style: solid !important;
             border-color: #f59e0b !important;
             background-color: rgba(254, 243, 199, 0.85) !important;
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.5) !important;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5) !important;
         }
 
         /* Animations */
         @keyframes popIn {
             0% { transform: scale(0.4); opacity: 0; }
-            70% { transform: scale(1.12); opacity: 1; }
+            70% { transform: scale(1.1); opacity: 1; }
             100% { transform: scale(1); }
         }
 
         @keyframes wobble {
             0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-8px) rotate(-4deg); }
-            40% { transform: translateX(8px) rotate(4deg); }
-            60% { transform: translateX(-5px) rotate(-2deg); }
-            80% { transform: translateX(5px) rotate(2deg); }
+            20% { transform: translateX(-6px) rotate(-3deg); }
+            40% { transform: translateX(6px) rotate(3deg); }
+            60% { transform: translateX(-4px) rotate(-2deg); }
+            80% { transform: translateX(4px) rotate(2deg); }
         }
 
         .animate-pop {
-            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
         .animate-wobble {
-            animation: wobble 0.4s ease-in-out;
-        }
-
-        /* Custom Scrollbars for tray if needed */
-        ::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
+            animation: wobble 0.35s ease-in-out;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col transition-colors duration-500 pb-6 select-none" id="app-body">
+<body class="h-screen max-h-screen w-screen flex flex-col transition-colors duration-500 p-2 sm:p-3 select-none overflow-hidden" id="app-body">
 
     <!-- Header Navigation Bar -->
-    <header class="w-full px-3 py-2 md:px-5 md:py-3 max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2 z-10">
+    <header class="w-full max-w-6xl mx-auto flex items-center justify-between gap-1.5 shrink-0 mb-1 z-10">
         <!-- App Title / Logo -->
-        <div class="flex items-center gap-2">
-            <span id="theme-badge-icon" class="text-3xl md:text-4xl">🎃</span>
-            <h1 class="text-xl md:text-3xl font-bold tracking-wide" id="app-title">My Montessori Calendar</h1>
+        <div class="flex items-center gap-1.5">
+            <span id="theme-badge-icon" class="text-2xl sm:text-3xl">🎃</span>
+            <h1 class="text-base sm:text-xl md:text-2xl font-bold tracking-wide leading-tight" id="app-title">Montessori Calendar</h1>
         </div>
 
         <!-- Month Navigation Controls -->
-        <div class="flex items-center gap-1 sm:gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-sm border border-white/80">
-            <button id="prev-month-btn" class="p-2 hover:bg-black/5 active:scale-90 rounded-xl text-lg font-black transition-all" title="Previous Month">
+        <div class="flex items-center gap-1 bg-white/90 backdrop-blur-md px-2 py-1 rounded-2xl shadow-sm border border-white/80">
+            <button id="prev-month-btn" class="p-1 hover:bg-black/5 active:scale-90 rounded-xl text-base sm:text-lg font-black transition-all" title="Previous Month">
                 ◀️
             </button>
             
             <label for="month-select" class="sr-only">Select Month</label>
-            <select id="month-select" class="bg-transparent font-bold text-gray-800 text-sm md:text-lg focus:outline-none cursor-pointer">
+            <select id="month-select" class="bg-transparent font-bold text-gray-800 text-xs sm:text-base focus:outline-none cursor-pointer">
                 <!-- Populated dynamically -->
             </select>
             
             <label for="year-select" class="sr-only">Select Year</label>
-            <select id="year-select" class="bg-transparent font-bold text-gray-800 text-sm md:text-lg focus:outline-none cursor-pointer">
+            <select id="year-select" class="bg-transparent font-bold text-gray-800 text-xs sm:text-base focus:outline-none cursor-pointer">
                 <!-- Populated dynamically -->
             </select>
 
-            <button id="next-month-btn" class="p-2 hover:bg-black/5 active:scale-90 rounded-xl text-lg font-black transition-all" title="Next Month">
+            <button id="next-month-btn" class="p-1 hover:bg-black/5 active:scale-90 rounded-xl text-base sm:text-lg font-black transition-all" title="Next Month">
                 ▶️
             </button>
         </div>
 
         <!-- Utility Action Buttons -->
-        <div class="flex items-center gap-2">
-            <!-- Fullscreen Toggle for Android Smartboard -->
-            <button id="fullscreen-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold shadow-md transition-all text-xs md:text-sm" title="Toggle Smartboard Fullscreen">
-                📺 <span id="fullscreen-btn-text">Fullscreen</span>
+        <div class="flex items-center gap-1.5">
+            <!-- Fullscreen Toggle for Smartboard -->
+            <button id="fullscreen-btn" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold shadow-md transition-all text-xs sm:text-sm" title="Toggle Smartboard Fullscreen">
+                📺 <span id="fullscreen-btn-text" class="hidden sm:inline">Fullscreen</span>
             </button>
 
             <!-- Sound Mute Toggle -->
-            <button id="sound-btn" class="p-2 rounded-xl bg-white/90 hover:bg-white text-gray-700 shadow-sm border border-white/80 transition-all text-lg active:scale-95" title="Toggle Sound">
+            <button id="sound-btn" class="p-1.5 rounded-xl bg-white/90 hover:bg-white text-gray-700 shadow-sm border border-white/80 transition-all text-sm sm:text-base active:scale-95" title="Toggle Sound">
                 🔊
             </button>
             
             <!-- Reset Month Button -->
-            <button id="reset-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold shadow-md transition-all text-xs md:text-sm">
-                🔄 <span>Reset</span>
+            <button id="reset-btn" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold shadow-md transition-all text-xs sm:text-sm">
+                🔄 <span class="hidden sm:inline">Reset</span>
             </button>
         </div>
     </header>
 
-    <main class="w-full max-w-5xl mx-auto px-2 sm:px-4 flex-1 flex flex-col gap-3 mt-1">
+    <main class="w-full max-w-5xl mx-auto flex-1 min-h-0 flex flex-col gap-1.5">
         
         <!-- Seasonal Header Card -->
-        <div id="calendar-header-card" class="rounded-3xl p-3 md:p-5 text-center shadow-lg transition-all duration-500 relative overflow-hidden border-2 border-white/60">
-            <div id="header-decor-left" class="absolute left-3 top-1/2 -translate-y-1/2 text-3xl md:text-6xl opacity-80 pointer-events-none">🍁</div>
-            <div id="header-decor-right" class="absolute right-3 top-1/2 -translate-y-1/2 text-3xl md:text-6xl opacity-80 pointer-events-none">🎃</div>
+        <div id="calendar-header-card" class="rounded-2xl p-2 sm:p-2.5 text-center shadow-md transition-all duration-500 relative overflow-hidden border border-white/60 shrink-0">
+            <div id="header-decor-left" class="absolute left-2 top-1/2 -translate-y-1/2 text-2xl sm:text-4xl opacity-80 pointer-events-none">🍁</div>
+            <div id="header-decor-right" class="absolute right-2 top-1/2 -translate-y-1/2 text-2xl sm:text-4xl opacity-80 pointer-events-none">🎃</div>
             
-            <h2 id="calendar-month-title" class="text-2xl md:text-4xl font-black tracking-wider drop-shadow-sm capitalize">
+            <h2 id="calendar-month-title" class="text-lg sm:text-2xl font-black tracking-wider drop-shadow-sm capitalize leading-tight">
                 October 2026
             </h2>
-            <p id="theme-tagline" class="text-xs md:text-base font-semibold mt-0.5 opacity-90">
+            <p id="theme-tagline" class="text-xs sm:text-sm font-semibold opacity-90 truncate max-w-md mx-auto">
                 Spooky Fall Fun! Drag or tap numbers to complete the calendar.
             </p>
 
             <!-- Completion Progress Bar -->
-            <div class="max-w-xs mx-auto mt-2 bg-black/10 rounded-full h-2.5 p-0.5 backdrop-blur-sm overflow-hidden">
+            <div class="max-w-xs mx-auto mt-1 bg-black/10 rounded-full h-1.5 p-0.5 backdrop-blur-sm overflow-hidden">
                 <div id="progress-bar" class="h-full rounded-full transition-all duration-300 bg-white" style="width: 0%"></div>
             </div>
         </div>
 
         <!-- Main Calendar Grid Area -->
-        <div class="bg-white/90 backdrop-blur-md rounded-3xl p-2.5 sm:p-4 shadow-xl border border-white/80 flex-1 flex flex-col justify-between">
+        <div class="bg-white/90 backdrop-blur-md rounded-2xl p-2 sm:p-3 shadow-lg border border-white/80 flex-1 min-h-0 flex flex-col justify-between">
             
             <!-- Days of Week Headers -->
-            <div class="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center font-bold text-xs sm:text-base">
-                <div class="py-1.5 rounded-xl bg-red-100/90 text-red-700">Sun</div>
-                <div class="py-1.5 rounded-xl bg-blue-100/90 text-blue-700">Mon</div>
-                <div class="py-1.5 rounded-xl bg-blue-100/90 text-blue-700">Tue</div>
-                <div class="py-1.5 rounded-xl bg-blue-100/90 text-blue-700">Wed</div>
-                <div class="py-1.5 rounded-xl bg-blue-100/90 text-blue-700">Thu</div>
-                <div class="py-1.5 rounded-xl bg-blue-100/90 text-blue-700">Fri</div>
-                <div class="py-1.5 rounded-xl bg-red-100/90 text-red-700">Sat</div>
+            <div class="grid grid-cols-7 gap-1 mb-1 text-center font-bold text-xs sm:text-sm shrink-0">
+                <div class="py-0.5 sm:py-1 rounded-lg bg-red-100/90 text-red-700">Sun</div>
+                <div class="py-0.5 sm:py-1 rounded-lg bg-blue-100/90 text-blue-700">Mon</div>
+                <div class="py-0.5 sm:py-1 rounded-lg bg-blue-100/90 text-blue-700">Tue</div>
+                <div class="py-0.5 sm:py-1 rounded-lg bg-blue-100/90 text-blue-700">Wed</div>
+                <div class="py-0.5 sm:py-1 rounded-lg bg-blue-100/90 text-blue-700">Thu</div>
+                <div class="py-0.5 sm:py-1 rounded-lg bg-blue-100/90 text-blue-700">Fri</div>
+                <div class="py-0.5 sm:py-1 rounded-lg bg-red-100/90 text-red-700">Sat</div>
             </div>
 
             <!-- 7-Column Target Calendar Drop Grid -->
-            <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5 sm:gap-2.5 min-h-[280px] sm:min-h-[380px] flex-1">
+            <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 min-h-0 h-full">
                 <!-- Drop slots generated dynamically -->
             </div>
         </div>
 
         <!-- Draggable & Selectable Number Bank Tray -->
-        <div class="bg-white/90 backdrop-blur-md rounded-3xl p-3 shadow-xl border border-white/80 flex flex-col gap-2">
-            <div class="flex items-center justify-between px-1">
-                <span class="text-xs sm:text-base font-bold text-gray-700 flex items-center gap-2">
+        <div class="bg-white/90 backdrop-blur-md rounded-2xl p-2 shadow-lg border border-white/80 shrink-0 flex flex-col gap-1 max-h-[28vh] sm:max-h-[25vh]">
+            <div class="flex items-center justify-between px-1 shrink-0">
+                <span class="text-xs sm:text-sm font-bold text-gray-700 flex items-center gap-1.5">
                     <span>✨ Number Bank</span>
-                    <span class="text-xs font-normal text-gray-500 hidden sm:inline">(Drag or tap a number, then tap a calendar slot)</span>
+                    <span class="text-[10px] sm:text-xs font-normal text-gray-500 hidden md:inline">(Drag or tap a number, then tap a calendar slot)</span>
                 </span>
-                <button id="shuffle-btn" class="text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-xl transition-colors active:scale-95">
-                    🔀 Reshuffle
+                <button id="shuffle-btn" class="text-[11px] sm:text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-0.5 rounded-lg transition-colors active:scale-95">
+                    🔀 Shuffle
                 </button>
             </div>
 
             <!-- Number Bank Container -->
-            <div id="number-bank" class="flex flex-wrap gap-2 sm:gap-3 justify-center items-center p-2.5 min-h-[85px] rounded-2xl bg-gray-50/80 border-2 border-dashed border-gray-200">
+            <div id="number-bank" class="flex flex-wrap gap-1.5 sm:gap-2 justify-center items-center p-1.5 rounded-xl bg-gray-50/80 border border-dashed border-gray-200 overflow-y-auto flex-1 min-h-0">
                 <!-- Draggable/Selectable tiles populated dynamically -->
             </div>
         </div>
@@ -232,13 +222,13 @@
 
     <!-- Celebration Completion Modal -->
     <div id="completion-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full text-center shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-amber-300" id="completion-card">
-            <div id="modal-icon" class="text-6xl md:text-7xl mb-2 animate-bounce">🎉</div>
-            <h3 id="modal-title" class="text-3xl font-black text-gray-800 mb-1">Fantastic Job!</h3>
-            <p id="modal-msg" class="text-base md:text-lg font-semibold text-gray-600 mb-6">
+        <div class="bg-white rounded-3xl p-5 sm:p-7 max-w-sm w-full text-center shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-amber-300" id="completion-card">
+            <div id="modal-icon" class="text-5xl sm:text-6xl mb-1 animate-bounce">🎉</div>
+            <h3 id="modal-title" class="text-2xl sm:text-3xl font-black text-gray-800 mb-1">Fantastic Job!</h3>
+            <p id="modal-msg" class="text-sm sm:text-base font-semibold text-gray-600 mb-5">
                 You completed the calendar!
             </p>
-            <button id="modal-close-btn" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-transform active:scale-95 text-lg">
+            <button id="modal-close-btn" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-transform active:scale-95 text-base sm:text-lg">
                 🌟 Continue Exploring
             </button>
         </div>
@@ -550,11 +540,11 @@
             const btn = document.getElementById('fullscreen-btn');
 
             if (isFullscreen) {
-                btnText.textContent = "Exit Fullscreen";
+                if (btnText) btnText.textContent = "Exit Fullscreen";
                 btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
                 btn.classList.add('bg-stone-700', 'hover:bg-stone-800');
             } else {
-                btnText.textContent = "Fullscreen";
+                if (btnText) btnText.textContent = "Fullscreen";
                 btn.classList.remove('bg-stone-700', 'hover:bg-stone-800');
                 btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
             }
@@ -616,10 +606,10 @@
             const startDayIndex = getFirstDayOfWeek(currentYear, currentMonth);
 
             // Apply seasonal theme classes
-            document.body.className = `${theme.bgClass} min-h-screen flex flex-col transition-colors duration-500 pb-6 select-none`;
+            document.body.className = `${theme.bgClass} h-screen max-h-screen w-screen flex flex-col transition-colors duration-500 p-2 sm:p-3 select-none overflow-hidden`;
             
             const headerCard = document.getElementById('calendar-header-card');
-            headerCard.className = `rounded-3xl p-3 md:p-5 text-center shadow-lg transition-all duration-500 relative overflow-hidden border-2 border-white/60 ${theme.headerBg}`;
+            headerCard.className = `rounded-2xl p-2 sm:p-2.5 text-center shadow-md transition-all duration-500 relative overflow-hidden border border-white/60 shrink-0 ${theme.headerBg}`;
             
             document.getElementById('calendar-month-title').textContent = `${theme.name} ${currentYear}`;
             document.getElementById('theme-tagline').textContent = theme.tagline;
@@ -634,7 +624,7 @@
             // Empty padding cells before 1st day of month
             for (let i = 0; i < startDayIndex; i++) {
                 const emptyCell = document.createElement('div');
-                emptyCell.className = "rounded-2xl bg-black/5 border border-transparent min-h-[45px] sm:min-h-[65px]";
+                emptyCell.className = "rounded-xl bg-black/5 border border-transparent flex-1 min-h-0";
                 gridContainer.appendChild(emptyCell);
             }
 
@@ -643,7 +633,7 @@
                 const isPlaced = !!placedDays[day];
 
                 const slot = document.createElement('div');
-                slot.className = `drop-slot relative rounded-2xl border-2 border-dashed flex flex-col items-center justify-center min-h-[50px] sm:min-h-[70px] p-1 transition-all ${theme.slotStyle}`;
+                slot.className = `drop-slot relative rounded-xl border-2 border-dashed flex flex-col items-center justify-center flex-1 min-h-0 p-0.5 transition-all ${theme.slotStyle}`;
                 slot.dataset.day = day;
 
                 // Slot Tap Listener for Tap-to-Place Mode
@@ -685,7 +675,7 @@
             }
 
             if (remainingNumbers.length === 0) {
-                bankContainer.innerHTML = `<div class="text-emerald-600 font-bold text-center py-2 text-sm sm:text-base animate-pop">🎉 Great job! All numbers placed for ${SEASONAL_THEMES[currentMonth].name}!</div>`;
+                bankContainer.innerHTML = `<div class="text-emerald-600 font-bold text-center py-1 text-xs sm:text-sm animate-pop">🎉 Great job! All numbers placed for ${SEASONAL_THEMES[currentMonth].name}!</div>`;
                 return;
             }
 
@@ -700,7 +690,7 @@
 
         function createDraggableTileElement(day, theme) {
             const tile = document.createElement('div');
-            tile.className = `number-tile flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 text-xl sm:text-2xl font-black rounded-2xl shadow-md border-2 transition-all ${theme.tileBg}`;
+            tile.className = `number-tile flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 text-base sm:text-xl font-black rounded-xl shadow border-2 transition-all shrink-0 ${theme.tileBg}`;
             tile.textContent = day;
             tile.dataset.day = day;
 
@@ -717,11 +707,11 @@
 
         function createPlacedTileElement(day, theme) {
             const tile = document.createElement('div');
-            tile.className = `w-full h-full flex flex-col items-center justify-center rounded-xl font-black text-base sm:text-2xl shadow-sm z-10 animate-pop ${theme.tileBg} relative overflow-hidden cursor-pointer`;
+            tile.className = `w-full h-full flex flex-col items-center justify-center rounded-lg font-black text-sm sm:text-xl shadow-xs z-10 animate-pop ${theme.tileBg} relative overflow-hidden cursor-pointer`;
             
             tile.innerHTML = `
                 <span class="leading-none">${day}</span>
-                <span class="text-xs sm:text-sm leading-none mt-0.5 opacity-90">${theme.sticker}</span>
+                <span class="text-[10px] sm:text-xs leading-none mt-0.5 opacity-90">${theme.sticker}</span>
             `;
 
             tile.title = "Tap to return number to bank";
@@ -889,7 +879,7 @@
                 
                 setTimeout(() => {
                     slotElement.classList.remove('animate-wobble', 'border-red-400', 'bg-red-50');
-                }, 400);
+                }, 350);
             }
         }
 
